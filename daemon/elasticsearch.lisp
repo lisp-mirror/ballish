@@ -19,7 +19,6 @@
   (declare (ignore var))
   (let ((process (gensym))
 	(timeout-counter (gensym))
-	(es-url (gensym))
 	(kill-counter (gensym)))
     `(let ((,process
 	    (uiop:launch-program
