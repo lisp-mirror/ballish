@@ -42,16 +42,19 @@
 		       (progn
 			 (decf ,timeout-counter)
 			 (sleep 1))))))
-	 (uiop:terminate-process ,process)
-	 (loop
-	    (if (uiop:process-alive-p ,process)
-		(if (> ,kill-counter 0)
-		    (progn
-		      (decf ,kill-counter)
-		      (sleep 1))
-		    (uiop:terminate-process ,process :urgent t))
-		(return)))
-	 (uiop:wait-process ,process)))))
+	 (kill-process ,process ,kill-counter)))))
+
+(defun kill-process (process kill-counter)
+  (uiop:terminate-process process)
+  (loop
+     (if (uiop:process-alive-p process)
+	 (if (> kill-counter 0)
+	     (progn
+	       (decf kill-counter)
+	       (sleep 1))
+	     (uiop:terminate-process process :urgent t))
+	 (return)))
+  (uiop:wait-process process))
 
 (defun request (path method &optional alist)
   (decode-json-from-string
@@ -60,17 +63,16 @@
 		 :content-type "application/json"
 		 :content (and alist (encode-json-alist-to-string alist)))))
 
-(defmethod encode-json ((_ (eql :false)) &optional stream)
+;;; Adds support for "false" in cl-json
+(defmethod json:encode-json ((_ (eql :false)) &optional stream)
   (princ "false" stream)
   nil)
 
 (defun setup-mappings ()
   (request "/source"
 	   :put
-	   '((mappings .
-	      ((properties .
-			   ((code . ((type . "text")))
-			    (mtime . ((enabled . :false))))))))))
+	   '((mappings . ((properties . ((code . ((type . "text")))
+					 (mtime . ((enabled . :false))))))))))
 
 (defun cdr-assoc (item alist)
   (cdr (assoc item alist)))
