@@ -16,13 +16,13 @@
 (defvar *folder* #p"/home/ralt/Dev/lab.plat.farm/foundation/foundation/")
 
 (defun main ()
-  (with-elasticsearch (client)
+  (with-elasticsearch ()
     (let ((inotify (make-inotify)))
       (unwind-protect
 	   (let ((files (make-mailbox)))
 	     (add-watches inotify *folder* files)
 
-	     (with-indexing-thread (files client)
+	     (with-indexing-thread (files)
 	       (format t "Ready to start watching~%")
 
 	       (loop

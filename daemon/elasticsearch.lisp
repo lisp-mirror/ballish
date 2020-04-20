@@ -1,18 +1,22 @@
 (uiop:define-package :ballish/daemon/elasticsearch
     (:use :cl)
   (:import-from :drakma #:http-request)
-  (:import-from :quri #:uri)
+  (:import-from :quri #:uri #:merge-uris #:render-uri #:url-encode)
+  (:import-from :drakma #:http-request)
   (:import-from :usocket #:connection-refused-error)
-  (:import-from :named-readtables #:in-readtable)
-  (:import-from :cl-elastic #:hashtable-syntax #:<client> #:*enable-keywords* #:send-request)
+  (:import-from :cl-json #:encode-json-alist-to-string #:encode-json #:decode-json-from-string)
   (:export #:with-elasticsearch
-	   #:export-code))
+	   #:index-code))
 
 (in-package :ballish/daemon/elasticsearch)
 
-(in-readtable hashtable-syntax)
+(defvar *es-uri* (uri "http://localhost:9200"))
 
-(defmacro with-elasticsearch ((client) &body body)
+(push (cons "application" "json") drakma:*text-content-types*)
+(setf drakma:*drakma-default-external-format* :utf8)
+
+(defmacro with-elasticsearch (var &body body)
+  (declare (ignore var))
   (let ((process (gensym))
 	(timeout-counter (gensym))
 	(es-url (gensym))
@@ -22,14 +26,13 @@
 	     "~/Downloads/elasticsearch-7.6.2/bin/elasticsearch"
 	     :output :interactive))
 	   (,timeout-counter 60)
-	   (,kill-counter 10)
-	   (,client (make-instance '<client> :endpoint "http://localhost:9200")))
+	   (,kill-counter 10))
        (unwind-protect
 	    (loop
 	       (handler-case
 		   (progn
-		     (send-request ,client :dummy)
-		     (setup-mappings ,client)
+		     (request "/" :get)
+		     (setup-mappings)
 		     (unwind-protect
 			  (progn ,@body)
 		       (return)))
@@ -50,12 +53,36 @@
 		(return)))
 	 (uiop:wait-process ,process)))))
 
-(defun setup-mappings (client)
-  (send-request client :source :method :put
-		:data
-		#{:mappings
-		 #{:properties
-		  #{:code #{:type "text"}
-		    :mtime #{:type "integer" :enabled nil}}}}))
+(defun request (path method &optional alist)
+  (decode-json-from-string
+   (http-request (render-uri (merge-uris path *es-uri*))
+		 :method method
+		 :content-type "application/json"
+		 :content (and alist (encode-json-alist-to-string alist)))))
 
-(defun index-code (client path mtime code))
+(defmethod encode-json ((_ (eql :false)) &optional stream)
+  (princ "false" stream)
+  nil)
+
+(defun setup-mappings ()
+  (request "/source"
+	   :put
+	   '((mappings .
+	      ((properties .
+			   ((code . ((type . "text")))
+			    (mtime . ((enabled . :false))))))))))
+
+(defun cdr-assoc (item alist)
+  (cdr (assoc item alist)))
+
+(defun index-code (path mtime code)
+  (let* ((req-path (namestring
+		    (merge-pathnames
+		     (url-encode (namestring path)) "/source/_doc/")))
+	 (doc (request req-path :get)))
+    (when (or (not (cdr-assoc :found doc))
+	      (> mtime (cdr-assoc :mtime (cdr-assoc :--source doc))))
+        (request req-path
+		 :post
+		 `((code . ,code)
+		   (mtime . ,mtime))))))
