@@ -3,11 +3,16 @@
   (:import-from :drakma #:http-request)
   (:import-from :quri #:uri)
   (:import-from :usocket #:connection-refused-error)
-  (:export #:with-elasticsearch))
+  (:import-from :named-readtables #:in-readtable)
+  (:import-from :cl-elastic #:hashtable-syntax #:<client> #:*enable-keywords* #:send-request)
+  (:export #:with-elasticsearch
+	   #:export-code))
 
 (in-package :ballish/daemon/elasticsearch)
 
-(defmacro with-elasticsearch ((uri) &body body)
+(in-readtable hashtable-syntax)
+
+(defmacro with-elasticsearch ((client) &body body)
   (let ((process (gensym))
 	(timeout-counter (gensym))
 	(es-url (gensym))
@@ -17,16 +22,16 @@
 	     "~/Downloads/elasticsearch-7.6.2/bin/elasticsearch"
 	     :output :interactive))
 	   (,timeout-counter 60)
-	   (,es-url "http://localhost:9200")
-	   (,kill-counter 10))
+	   (,kill-counter 10)
+	   (,client (make-instance '<client> :endpoint "http://localhost:9200")))
        (unwind-protect
 	    (loop
 	       (handler-case
 		   (progn
-		     (http-request ,es-url)
+		     (send-request ,client :dummy)
+		     (setup-mappings ,client)
 		     (unwind-protect
-			  (let ((,uri (quri:uri ,es-url)))
-			    ,@body)
+			  (progn ,@body)
 		       (return)))
 		 (connection-refused-error ()
 		   (if (= ,timeout-counter 0)
@@ -44,3 +49,13 @@
 		    (uiop:terminate-process ,process :urgent t))
 		(return)))
 	 (uiop:wait-process ,process)))))
+
+(defun setup-mappings (client)
+  (send-request client :source :method :put
+		:data
+		#{:mappings
+		 #{:properties
+		  #{:code #{:type "text"}
+		    :mtime #{:type "integer" :enabled nil}}}}))
+
+(defun index-code (client path mtime code))
