@@ -6,7 +6,8 @@
   (:import-from :usocket #:connection-refused-error)
   (:import-from :cl-json #:encode-json-alist-to-string #:encode-json #:decode-json-from-string)
   (:export #:with-elasticsearch
-	   #:index-code))
+	   #:index-code
+	   #:deindex-code))
 
 (in-package :ballish/daemon/elasticsearch)
 
@@ -71,19 +72,27 @@
   (request "/source"
 	   :put
 	   '((mappings . ((properties . ((code . ((type . "text")))
+					 (tags . ((type . "keyword")))
 					 (mtime . ((enabled . :false))))))))))
 
 (defun cdr-assoc (item alist)
   (cdr (assoc item alist)))
 
-(defun index-code (path mtime code)
-  (let* ((req-path (namestring
-		    (merge-pathnames
-		     (url-encode (namestring path)) "/source/_doc/")))
+(defun index-code (path mtime code tags)
+  (let* ((req-path (path->source-url path))
 	 (doc (request req-path :get)))
     (when (or (not (cdr-assoc :found doc))
 	      (> mtime (cdr-assoc :mtime (cdr-assoc :--source doc))))
         (request req-path
 		 :post
 		 `((code . ,code)
+		   (tags . ,(format nil "~{~a~^,~}" tags))
 		   (mtime . ,mtime))))))
+
+(defun deindex-code (path)
+  (request (path->source-url path) :delete))
+
+(defun path->source-url (path)
+  (namestring
+   (merge-pathnames
+    (url-encode (namestring path)) "/source/_doc/")))

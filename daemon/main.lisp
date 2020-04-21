@@ -13,34 +13,53 @@
 
 (in-package :ballish/daemon/main)
 
-(defvar *folder* #p"/home/ralt/Dev/lab.plat.farm/foundation/foundation/")
+(defvar *folders* '(#p"/home/ralt/Dev/lab.plat.farm/"
+		    #p"/home/ralt/.venvs/foundation/lib/python2.7/site-packages/"
+		    #p"/home/ralt/.venvs/git/lib/python2.7/site-packages/"
+		    #p"/home/ralt/go/src/"
+		    #p"/home/ralt/go/pkg/mod/"))
+
+(defvar *ignored-folders* '(".git" ".svn" ".hg" ".tox" "__pycache__"))
 
 (defun main ()
   (with-elasticsearch ()
     (let ((inotify (make-inotify)))
       (unwind-protect
 	   (let ((files (make-mailbox)))
-	     (add-watches inotify *folder* files)
-
 	     (with-indexing-thread (files)
-	       (format t "Ready to start watching~%")
+	       (iter (for folder in *folders*)
+		     (add-watches inotify folder files))
 
 	       (loop
 		  (let* ((event (read-event inotify))
 			 (mask (inotify-event-mask event)))
-		    (cond ((and (member :create mask) (member :isdir mask))
+		    (cond (;; New folder/file
+			   (and (member :create mask) (member :isdir mask))
 			   (add-watches
 			    inotify
 			    (merge-pathnames
 			     (make-pathname
 			      :directory `(:relative ,(inotify-event-name event)))
 			     (event-pathname/flags inotify event))
-			    files)))
-		    (format t "~a~%" event)))))
+			    files))
+
+			  ;; file changed
+			  ((and (member :modify mask) (not (member :isdir mask)))
+			   (send-message files (event-pathname/flags inotify event)))
+
+			  ;; file deleted
+			  ((and (or (member :delete mask) (member :delete-self mask))
+				(not (member :isdir mask)))
+			   (send-message files (event-pathname/flags inotify event))))))))
 	(close-inotify inotify)))))
 
 (defun add-watches (inotify path files)
-  (watch inotify path '(:create :delete :delete-self :modify :move))
+  (handler-case
+      (watch inotify path '(:create :delete :delete-self :modify :move))
+    (osicat-posix:posix-error ()
+      ;; silently ignore. It can be many reasons, and we just don't
+      ;; really care, it means we're skipping.
+      (return-from add-watches)))
 
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
     (iter (for p in (directory wild-path))
@@ -49,6 +68,7 @@
 	    (send-message files p))
 
 	  (when (and (not (pathname-name p))
-		     (not (string= (first (last (pathname-directory p)))
-				   ".git")))
+		     (not (member (first (last (pathname-directory p)))
+				  *ignored-folders*
+				  :test #'string=)))
 	    (add-watches inotify p files)))))
