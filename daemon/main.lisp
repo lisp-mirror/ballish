@@ -1,5 +1,5 @@
 (uiop:define-package :ballish/daemon/main
-    (:use :cl :ballish/daemon/elasticsearch :iterate :ballish/daemon/indexing)
+    (:use :cl :iterate :ballish/daemon/indexing)
   (:import-from :cl-inotify
 		#:make-inotify
 		#:close-inotify
@@ -22,43 +22,45 @@
 (defvar *ignored-folders* '(".git" ".svn" ".hg" ".tox" "__pycache__"))
 
 (defun main ()
-  (with-elasticsearch ()
-    (let ((inotify (make-inotify)))
-      (unwind-protect
-	   (let ((files (make-mailbox)))
-	     (with-indexing-thread (files)
-	       (iter (for folder in *folders*)
-		     (add-watches inotify folder files))
+  (let ((inotify (make-inotify)))
+    (unwind-protect
+	 (let ((files (make-mailbox)))
+	   (with-indexing-thread (files)
+	     (iter (for folder in *folders*)
+		   (add-watches inotify folder files))
 
-	       (loop
-		  (let* ((event (read-event inotify))
-			 (mask (inotify-event-mask event)))
-		    (cond (;; New folder/file
-			   (and (member :create mask) (member :isdir mask))
-			   (add-watches
-			    inotify
-			    (merge-pathnames
-			     (make-pathname
-			      :directory `(:relative ,(inotify-event-name event)))
-			     (event-pathname/flags inotify event))
-			    files))
+	     (loop
+		(let* ((event (read-event inotify))
+		       (mask (inotify-event-mask event)))
+		  (cond (;; New folder/file
+			 (and (member :create mask) (member :isdir mask))
+			 (add-watches
+			  inotify
+			  (merge-pathnames
+			   (make-pathname
+			    :directory `(:relative ,(inotify-event-name event)))
+			   (event-pathname/flags inotify event))
+			  files))
 
-			  ;; file changed
-			  ((and (member :modify mask) (not (member :isdir mask)))
-			   (send-message files (event-pathname/flags inotify event)))
+			;; file changed
+			((and (member :modify mask) (not (member :isdir mask)))
+			 (send-message files (event-pathname/flags inotify event)))
 
-			  ;; file deleted
-			  ((and (or (member :delete mask) (member :delete-self mask))
-				(not (member :isdir mask)))
-			   (send-message files (event-pathname/flags inotify event))))))))
-	(close-inotify inotify)))))
+			;; TODO: add :move-from/:move-to
+			;; file deleted
+			((and (or (member :delete mask) (member :delete-self mask))
+			      (not (member :isdir mask)))
+			 (send-message files (event-pathname/flags inotify event))))))))
+      (close-inotify inotify))))
 
 (defun add-watches (inotify path files)
+  ;; TODO: don't watch on read-only files (either fs or permission)
   (handler-case
       (watch inotify path '(:create :delete :delete-self :modify :move))
-    (osicat-posix:posix-error ()
+    (osicat-posix:posix-error (e)
       ;; silently ignore. It can be many reasons, and we just don't
       ;; really care, it means we're skipping.
+      (format *error-output* "Error watching ~a: ~a~%" path e)
       (return-from add-watches)))
 
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
