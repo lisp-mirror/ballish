@@ -5,11 +5,7 @@
   (:import-from :sb-posix #:stat #:stat-mtime #:syscall-error #:syscall-errno)
   (:import-from :sb-int #:stream-decoding-error)
   (:import-from :alexandria #:alist-hash-table #:hash-table-keys)
-  (:import-from :montezuma
-		#:index #:document
-		#:get-document #:document-value
-		#:delete-document
-		#:add-field #:make-field #:add-document-to-index)
+  (:import-from :sqlite #:connect #:execute-non-query #:execute-single #:sqlite-error #:sqlite-error-code)
   (:export #:with-indexing-thread))
 
 (in-package :ballish/daemon/indexing)
@@ -21,13 +17,37 @@
 
 (defvar *text-extensions* (hash-table-keys *text-extensions-tags*))
 
-(defvar *source-index* nil
-  "The index used to store source code.")
+(defvar *source-db* nil
+  "The database used to store source code.")
+
+(defvar *source-db-definitions*
+  '("CREATE VIRTUAL TABLE IF NOT EXISTS source
+     USING fts5(
+         path UNINDEXED,
+         content,
+         tags
+     )"
+    ;; It may look odd to create a separate table, but during
+    ;; indexing, we are doing a SELECT on path, and doing that on the
+    ;; virtual table takes >300ms, which means a super high overhead
+    ;; from those. Doing the SELECT on a normally indexed field in a
+    ;; table allows us to be 10x faster, even if we need to end up
+    ;; updating 2 tables every time. Ideally we'd do an UPSERT on the
+    ;; virtual table, but it's not supported because upserts only work
+    ;; if you can manage to break an index constraint, and those
+    ;; aren't supported on the virtual table.
+    "CREATE TABLE IF NOT EXISTS source_meta(
+         path TEXT PRIMARY KEY,
+         mtime INTEGER NOT NULL
+     )")
+  "The table definitions for the sqlite tables.")
 
 (defmacro with-indexing-thread ((queue) &body body)
   (let ((thread (gensym)))
     `(progn
-       (setf *source-index* (make-instance 'index :path (index-path #p"source")))
+       (setf *source-db* (connect (index-path #p"source.db")))
+       (iter (for definition in *source-db-definitions*)
+	     (execute-non-query *source-db* definition))
        (let ((,thread (make-thread #'index-loop :arguments (list ,queue) :name "Indexing thread")))
 	 (unwind-protect
 	      (progn ,@body)
@@ -58,17 +78,45 @@
 	     nil))))))
 
 (defun index-source (path mtime content tags)
-  (let* ((path-str (namestring path))
-	 (existing-doc (get-document *source-index* path-str)))
-    (when (or (not existing-doc)
-	      (> mtime (parse-integer (document-value existing-doc "mtime"))))
-      (let ((doc (make-instance 'document)))
-	(add-field doc (make-field "id" (namestring path) :index :untokenized))
-	(add-field doc (make-field "mtime" (write-to-string mtime) :index nil))
-	(add-field doc (make-field "content" content))
-	(add-field doc (make-field "tags" (format nil "~{~a~^ ~}" tags)))
-
-	(add-document-to-index *source-index* doc)))))
+  (loop
+     (handler-case
+	 (return-from index-source
+	   (let* ((path-str (namestring path))
+		  (existing-mtime (execute-single *source-db*
+						  "SELECT mtime FROM source_meta WHERE path = ?"
+						  path-str)))
+	     (if existing-mtime
+		 (when (> mtime existing-mtime)
+		   (execute-non-query *source-db*
+				      "UPDATE source
+                                       SET content = ?, tags = ?
+                                       WHERE path = ?"
+				      mtime
+				      content
+				      (format nil "~{~a~^ ~}" tags)
+				      path-str)
+		   (execute-non-query *source-db*
+				      "UPDATE source_meta
+                                       SET mtime = ?
+                                       WHERE path = ?"
+				      mtime
+				      path-str))
+		 (progn
+		   (execute-non-query *source-db*
+				      "INSERT INTO source(path, content, tags)
+                                       VALUES(?, ?, ?)"
+				      path-str
+				      content
+				      (format nil "~{~a~^ ~}" tags))
+		   (execute-non-query *source-db*
+				      "INSERT INTO source_meta(path, mtime)
+                                       VALUES(?, ?)"
+				      path-str
+				      mtime)))))
+       (sqlite-error (e)
+	 (if (equal (sqlite-error-code e) :busy)
+	     (sleep 0.1)
+	     (error e))))))
 
 (defun deindex-source (path)
-  (delete-document *source-index* (namestring path)))
+  (execute-non-query *source-db* "DELETE FROM source WHERE path = ?" (namestring path)))
