@@ -28,14 +28,15 @@
          tags
      )"
     ;; It may look odd to create a separate table, but during
-    ;; indexing, we are doing a SELECT on path, and doing that on the
-    ;; virtual table takes >300ms, which means a super high overhead
-    ;; from those. Doing the SELECT on a normally indexed field in a
-    ;; table allows us to be 10x faster, even if we need to end up
-    ;; updating 2 tables every time. Ideally we'd do an UPSERT on the
-    ;; virtual table, but it's not supported because upserts only work
-    ;; if you can manage to break an index constraint, and those
-    ;; aren't supported on the virtual table.
+    ;; indexing, we are doing a SELECT on path (to know if we need to
+    ;; do an INSERT or an UPDATE), and doing that on the virtual table
+    ;; takes >300ms, which means a super high overhead from
+    ;; those. Doing the SELECT on a normally indexed field in a table
+    ;; allows us to be 10x faster, even if we need to end up updating
+    ;; 2 tables every time. Ideally we'd do an UPSERT on the virtual
+    ;; table, but it's not supported because upserts only work if you
+    ;; can manage to break an index constraint, and those aren't
+    ;; supported on the virtual table.
     "CREATE TABLE IF NOT EXISTS source_meta(
          path TEXT PRIMARY KEY,
          mtime INTEGER NOT NULL
@@ -119,4 +120,6 @@
 	     (error e))))))
 
 (defun deindex-source (path)
-  (execute-non-query *source-db* "DELETE FROM source WHERE path = ?" (namestring path)))
+  (let ((path-str (namestring path)))
+    (execute-non-query *source-db* "DELETE FROM source WHERE path = ?" path-str)
+    (execute-non-query *source-db* "DELETE FROM source_meta WHERE path = ?" path-str)))
