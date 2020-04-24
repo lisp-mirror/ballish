@@ -1,9 +1,7 @@
 (uiop:define-package :ballish/daemon/source-indexing
     (:use :cl :iterate)
   (:import-from :sb-thread #:make-thread #:terminate-thread #:join-thread)
-  (:import-from :sb-concurrency
-		#:make-mailbox #:send-message #:receive-message
-		#:make-gate #:open-gate #:wait-on-gate)
+  (:import-from :sb-concurrency #:receive-message)
   (:import-from :sb-posix #:stat #:stat-mtime #:syscall-error #:syscall-errno)
   (:import-from :sb-int #:stream-decoding-error)
   (:import-from :alexandria #:alist-hash-table #:hash-table-keys)
@@ -11,18 +9,7 @@
 		#:connect #:disconnect
 		#:execute-non-query #:execute-single
 		#:sqlite-error #:sqlite-error-code)
-  (:import-from :cl-inotify
-		#:make-inotify
-		#:close-inotify
-		#:read-event
-		#:inotify-event
-		#:watch
-		#:inotify-event-mask
-		#:inotify-event-name
-		#:event-pathname/flags)
-  (:import-from :osicat-posix #:posix-error)
-  (:export #:with-indexing-thread
-	   #:make-source-indexing
+  (:export #:make-source-indexing
 	   #:wait
 	   #:stop-indexing))
 
@@ -60,10 +47,8 @@
 
 (defclass source-index ()
   ((thread :accessor thread)
-   (folder-queue :initarg :folder-queue :reader folder-queue)
-   (db :initarg :db :reader db)
-   (inotify :initarg :inotify :reader inotify)
-   (stop-gate :initarg :stop-gate :reader stop-gate)))
+   (files-queue :initarg :files-queue :reader files-queue)
+   (db :initarg :db :reader db)))
 
 (defmethod initialize-instance :after ((i source-index) &key)
   (iter (for definition in *table-definitions*)
@@ -73,108 +58,25 @@
 				:arguments (list i)
 				:name "Source index")))
 
-(defun make-source-indexing (folder-queue)
+(defun make-source-indexing (files-queue)
   (make-instance 'source-index
-		 :folder-queue folder-queue
+		 :files-queue files-queue
 		 :inotify (make-inotify)
-		 :stop-gate (make-gate :name "Source index stop")
 		 :db (connect (index-path #p"source.db"))))
 
 (defun wait (index)
   (join-thread (thread index)))
 
 (defun stop-indexing (index)
-  (open-gate (stop-gate index))
-  (join-thread (thread index))
-  (close-inotify (inotify index))
+  (terminate-thread (thread index))
   (disconnect (db index)))
 
 (defun index-loop (index)
-  (let* ((queue (make-mailbox :name "Source index"))
-	 (folder-thread (make-thread #'wait-for-new-folders
-				     :arguments (list index queue)
-				     :name "Source index wait for new folders"))
-	 (inotify-thread (make-thread #'wait-for-new-inotify-events
-				      :arguments (list index queue)
-				      :name "Source index wait for new inotify events"))
-	 (stop-gate-thread (make-thread #'wait-for-stop-gate
-					:arguments (list index queue)
-					:name "Source index wait for stop gate")))
-    (unwind-protect
-	 (loop
-	    (let ((message (receive-message queue)))
-	      (typecase message
-		(pathname
-		 (watch-and-index-folder index message))
-
-		(inotify-event
-		 (handle-inotify-event index message))
-
-		(t (return-from index-loop)))))
-      (terminate-thread folder-thread)
-      (terminate-thread inotify-thread)
-      (terminate-thread stop-gate-thread))))
-
-(defun wait-for-new-folders (index queue)
   (loop
-     (send-message queue (receive-message (folder-queue index)))))
-
-(defun wait-for-new-inotify-events (index queue)
-  (loop
-     (send-message queue (read-event (inotify index)))))
-
-(defun wait-for-stop-gate (index queue)
-  (wait-on-gate (stop-gate index))
-  (send-message queue t))
+     (index-file index (receive-message (files-queue index)))))
 
 (defun index-path (&rest more)
   (uiop:xdg-data-home #p"ballish/" more))
-
-(defun watch-and-index-folder (index folder)
-  (add-watch (inotify index) folder)
-  (index-folder index folder))
-
-(defun add-watch (inotify folder)
-  ;; TODO: don't watch on read-only files (either fs or permission)
-  (handler-case
-      (watch inotify folder '(:create :delete :delete-self :modify :move))
-    (posix-error (e)
-      ;; Ignore. It can be many reasons, and we just don't really
-      ;; care, it means we're skipping.
-      (format *error-output* "Error watching ~a: ~a~%" folder e))))
-
-(defun index-folder (index folder)
-  (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) folder)))
-    (iter (for path in (directory wild-path))
-	  (when (pathname-name path)
-	    (index-file index path)))))
-
-(defun handle-inotify-event (index event)
-  (let ((mask (inotify-event-mask event))
-	(path (event-pathname/flags (inotify index) event)))
-    (cond (;; New folder
-	   (and (member :create mask) (member :isdir mask))
-	   (watch-and-index-folder
-	    index
-	    (merge-pathnames
-	     (make-pathname :directory `(:relative ,(inotify-event-name event)))
-	     path)))
-
-	  ;; New file
-	  ((and (member :create mask) (not (member :isdir mask)))
-	   (index-file index path))
-
-	  ;; File changed
-	  ((and (member :modify mask) (not (member :isdir mask)))
-	   (index-file index path))
-
-	  ;; File deleted
-	  ((and (or (member :delete mask) (member :delete-self mask))
-		(not (member :isdir mask)))
-	   (deindex-source index path))
-
-	  ;; TODO: add :move-from/:move-to
-	  )))
 
 (defun index-file (index path)
   (let ((path-type (pathname-type path)))
