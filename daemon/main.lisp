@@ -1,13 +1,5 @@
 (uiop:define-package :ballish/daemon/main
-    (:use :cl :iterate :ballish/daemon/indexing)
-  (:import-from :cl-inotify
-		#:make-inotify
-		#:close-inotify
-		#:read-event
-		#:watch
-		#:inotify-event-mask
-		#:inotify-event-name
-		#:event-pathname/flags)
+    (:use :cl :iterate :ballish/daemon/source-indexing)
   (:import-from :sb-concurrency #:make-mailbox #:send-message)
   (:export #:main))
 
@@ -22,55 +14,21 @@
 (defvar *ignored-folders* '(".git" ".svn" ".hg" ".tox" "__pycache__"))
 
 (defun main ()
-  (let ((inotify (make-inotify)))
+  (let* ((source-queue (make-mailbox))
+	 (source-indexing (make-source-indexing source-queue)))
+    (iter (for folder in *folders*)
+	  (index-folder folder source-queue))
+
     (unwind-protect
-	 (let ((files (make-mailbox)))
-	   (with-indexing-thread (files)
-	     (iter (for folder in *folders*)
-		   (add-watches inotify folder files))
+	 (wait source-indexing)
+      (stop-indexing source-indexing))))
 
-	     (loop
-		(let* ((event (read-event inotify))
-		       (mask (inotify-event-mask event)))
-		  (cond (;; New folder/file
-			 (and (member :create mask) (member :isdir mask))
-			 (add-watches
-			  inotify
-			  (merge-pathnames
-			   (make-pathname
-			    :directory `(:relative ,(inotify-event-name event)))
-			   (event-pathname/flags inotify event))
-			  files))
+(defun index-folder (folder source-queue)
+  (send-message source-queue folder)
 
-			;; file changed
-			((and (member :modify mask) (not (member :isdir mask)))
-			 (send-message files (event-pathname/flags inotify event)))
-
-			;; TODO: add :move-from/:move-to
-			;; file deleted
-			((and (or (member :delete mask) (member :delete-self mask))
-			      (not (member :isdir mask)))
-			 (send-message files (event-pathname/flags inotify event))))))))
-      (close-inotify inotify))))
-
-(defun add-watches (inotify path files)
-  ;; TODO: don't watch on read-only files (either fs or permission)
-  (handler-case
-      (watch inotify path '(:create :delete :delete-self :modify :move))
-    (osicat-posix:posix-error (e)
-      ;; silently ignore. It can be many reasons, and we just don't
-      ;; really care, it means we're skipping.
-      (format *error-output* "Error watching ~a: ~a~%" path e)
-      (return-from add-watches)))
-
-  (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
+  (let ((wild-path (merge-pathnames (make-pathname :directory '(:relative :wild)) folder)))
     (iter (for p in (directory wild-path))
-
-	  (when (pathname-name p)
-	    (send-message files p))
-
-	  (when (and (not (pathname-name p))
-		     (not (member (first (last (pathname-directory p)))
-				  *ignored-folders*
-				  :test #'string=)))
-	    (add-watches inotify p files)))))
+	  (when (not (member (first (last (pathname-directory p)))
+			     *ignored-folders*
+			     :test #'string=))
+	    (index-folder p source-queue)))))
