@@ -1,14 +1,16 @@
 (uiop:define-package :ballish/daemon/main
-    (:use :cl :iterate :ballish/daemon/indexing)
+    (:use :cl :iterate :ballish/daemon/source-indexing)
+  (:import-from :sb-concurrency #:make-mailbox #:send-message #:receive-message)
+  (:import-from :sb-thread #:make-thread #:terminate-thread)
   (:import-from :cl-inotify
 		#:make-inotify
 		#:close-inotify
 		#:read-event
+		#:inotify-event
 		#:watch
 		#:inotify-event-mask
 		#:inotify-event-name
 		#:event-pathname/flags)
-  (:import-from :sb-concurrency #:make-mailbox #:send-message)
   (:export #:main))
 
 (in-package :ballish/daemon/main)
@@ -21,56 +23,80 @@
 
 (defvar *ignored-folders* '(".git" ".svn" ".hg" ".tox" "__pycache__"))
 
+(defmacro with-waiting-thread ((fn &key arguments name) &body body)
+  (let ((thread (gensym)))
+    `(let ((,thread (make-thread #',fn :arguments ,arguments :name ,name)))
+       (unwind-protect
+	    (progn ,@body)
+	 (handler-case
+	     (terminate-thread ,thread)
+	   (error () nil))))))
+
 (defun main ()
   (let ((inotify (make-inotify)))
-    (unwind-protect
-	 (let ((files (make-mailbox)))
-	   (with-indexing-thread (files)
-	     (iter (for folder in *folders*)
-		   (add-watches inotify folder files))
+    (with-source-indexing (source-index source-queue)
+      (iter (for folder in *folders*)
+	    (add-watches inotify folder source-queue))
 
-	     (loop
-		(let* ((event (read-event inotify))
-		       (mask (inotify-event-mask event)))
-		  (cond (;; New folder/file
-			 (and (member :create mask) (member :isdir mask))
-			 (add-watches
-			  inotify
-			  (merge-pathnames
-			   (make-pathname
-			    :directory `(:relative ,(inotify-event-name event)))
-			   (event-pathname/flags inotify event))
-			  files))
+      (let ((queue (make-mailbox)))
+	(with-waiting-thread (wait-for-indexing :arguments (list source-index queue)
+						:name "Main source index wait indexing")
+	  (with-waiting-thread (wait-for-inotify-event
+				:arguments (list inotify queue)
+				:name "Main source index wait inotify")
+	    (loop
+	       (let ((message (receive-message queue)))
+		 (typecase message
+		   (inotify-event
+		    (handle-inotify-event inotify message source-queue)))))))))))
 
-			;; file changed
-			((and (member :modify mask) (not (member :isdir mask)))
-			 (send-message files (event-pathname/flags inotify event)))
-
-			;; TODO: add :move-from/:move-to
-			;; file deleted
-			((and (or (member :delete mask) (member :delete-self mask))
-			      (not (member :isdir mask)))
-			 (send-message files (event-pathname/flags inotify event))))))))
-      (close-inotify inotify))))
-
-(defun add-watches (inotify path files)
+(defun add-watches (inotify path source-queue)
   ;; TODO: don't watch on read-only files (either fs or permission)
   (handler-case
       (watch inotify path '(:create :delete :delete-self :modify :move))
     (osicat-posix:posix-error (e)
-      ;; silently ignore. It can be many reasons, and we just don't
-      ;; really care, it means we're skipping.
+      ;; Ignore. It can be many reasons, and we just don't really
+      ;; care, it means we're skipping.
       (format *error-output* "Error watching ~a: ~a~%" path e)
       (return-from add-watches)))
 
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
     (iter (for p in (directory wild-path))
-
 	  (when (pathname-name p)
-	    (send-message files p))
+	    (send-message source-queue p))
 
 	  (when (and (not (pathname-name p))
 		     (not (member (first (last (pathname-directory p)))
 				  *ignored-folders*
 				  :test #'string=)))
-	    (add-watches inotify p files)))))
+	    (add-watches inotify p source-queue)))))
+
+(defun wait-for-indexing (source-indexing queue)
+  (send-message queue (wait source-indexing)))
+
+(defun wait-for-inotify-event (inotify queue)
+  (loop
+     (send-message queue (read-event inotify))))
+
+(defun handle-inotify-event (inotify event source-queue)
+  (let* ((mask (inotify-event-mask event))
+	 (path (event-pathname/flags inotify event)))
+    (cond (;; New folder
+	   (and (member :create mask) (member :isdir mask))
+	   (add-watches
+	    inotify
+	    (merge-pathnames
+	     (make-pathname :directory `(:relative ,(inotify-event-name event)))
+	     path)
+	    source-queue))
+
+	  ;; File created/modified/deleted
+	  ((and (not (member :isdir mask))
+		(or (member :create mask)
+		    (member :modify mask)
+		    (member :delete mask)
+		    (member :delete-self mask)))
+	   (send-message source-queue path))
+
+	  ;; TODO: add :move-from/:move-to
+	  )))
