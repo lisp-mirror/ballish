@@ -57,18 +57,21 @@
 	(iter (for folder in (execute-to-list db "SELECT path FROM folder"))
 	      (add-watches inotify (car folder) source-queue))
 
-	(let ((queue (make-mailbox)))
-	  (with-waiting-threads ((wait-for-indexing
-				  :arguments (list source-index queue)
-				  :name "Main source index wait indexing")
-				 (wait-for-inotify-event
-				  :arguments (list inotify queue)
-				  :name "Main source index wait inotify"))
-	    (loop
-	       (let ((message (receive-message queue)))
-		 (typecase message
-		   (inotify-event
-		    (handle-inotify-event inotify message source-queue)))))))))))
+	(main-loop db inotify source-index source-queue)))))
+
+(defun main-loop (db inotify source-index source-queue)
+  (let ((queue (make-mailbox)))
+    (with-waiting-threads ((wait-for-indexing
+			    :arguments (list source-index queue)
+			    :name "Main source index wait indexing")
+			   (wait-for-inotify-event
+			    :arguments (list inotify queue)
+			    :name "Main source index wait inotify"))
+      (loop
+	 (let ((message (receive-message queue)))
+	   (typecase message
+	     (inotify-event
+	      (handle-inotify-event inotify message source-queue))))))))
 
 (defun add-watches (inotify path source-queue)
   ;; TODO: don't watch on read-only files (either fs or permission)
