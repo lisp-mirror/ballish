@@ -48,8 +48,9 @@
 	    (add-watches inotify folder source-queue))
 
       (let ((queue (make-mailbox)))
-	(with-waiting-threads ((wait-for-indexing :arguments (list source-index queue)
-						  :name "Main source index wait indexing")
+	(with-waiting-threads ((wait-for-indexing
+				:arguments (list source-index queue)
+				:name "Main source index wait indexing")
 			       (wait-for-inotify-event
 				:arguments (list inotify queue)
 				:name "Main source index wait inotify"))
