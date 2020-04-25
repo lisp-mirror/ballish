@@ -5,6 +5,7 @@ ballish-daemon: $(wildcard daemon/*.lisp)
 		--load ~/quicklisp/setup.lisp \
 		--eval '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format t "~A~%" c) (uiop:quit -1)))' \
 		--eval '(push "$(PWD)/" asdf:*central-registry*)' \
+		--eval '(ql:quickload :ballish)' \
 		--eval '(asdf:make :ballish)'
 
 ballish-client: $(wildcard client/*.lisp)
@@ -12,4 +13,5 @@ ballish-client: $(wildcard client/*.lisp)
 		--load ~/quicklisp/setup.lisp \
 		--eval '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format t "~A~%" c) (uiop:quit -1)))' \
 		--eval '(push "$(PWD)/" asdf:*central-registry*)' \
+		--eval '(ql:quickload :ballish/client)' \
 		--eval '(asdf:make :ballish/client)'
