@@ -1,0 +1,4 @@
+image: daewok/lisp-devel
+
+build:
+  script: make
