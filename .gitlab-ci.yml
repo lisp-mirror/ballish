@@ -2,5 +2,7 @@ image: daewok/lisp-devel
 
 build:
   script:
+    - apt-get update -qq
+    - apt-get install -y git-core
     - git clone https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/
     - make
