@@ -1,4 +1,6 @@
 image: daewok/lisp-devel
 
 build:
-  script: make
+  script:
+    - git clone https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/
+    - make
