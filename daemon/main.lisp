@@ -3,23 +3,22 @@
   (:import-from :sb-concurrency #:make-mailbox #:send-message #:receive-message)
   (:import-from :sb-thread #:make-thread #:terminate-thread)
   (:import-from :cl-inotify
-		#:make-inotify
-		#:close-inotify
+		#:with-inotify
 		#:read-event
 		#:inotify-event
 		#:watch
 		#:inotify-event-mask
 		#:inotify-event-name
 		#:event-pathname/flags)
+  (:import-from :sqlite #:with-open-database #:execute-non-query #:execute-to-list)
   (:export #:main))
 
 (in-package :ballish/daemon/main)
 
-(defvar *folders* '(#p"/home/ralt/Dev/lab.plat.farm/"
-		    #p"/home/ralt/.venvs/foundation/lib/python2.7/site-packages/"
-		    #p"/home/ralt/.venvs/git/lib/python2.7/site-packages/"
-		    #p"/home/ralt/go/src/"
-		    #p"/home/ralt/go/pkg/mod/"))
+(defvar *table-definitions*
+  '("CREATE TABLE IF NOT EXISTS folder(
+         path TEXT PRIMARY KEY
+     )"))
 
 (defvar *ignored-folders* '(".git" ".svn" ".hg" ".tox" "__pycache__"))
 
@@ -41,24 +40,35 @@
       `(with-waiting-thread ,(first thread-definitions)
          ,(expand-waiting-threads (rest thread-definitions) body))))
 
-(defun main ()
-  (let ((inotify (make-inotify)))
-    (with-source-indexing (source-index source-queue)
-      (iter (for folder in *folders*)
-	    (add-watches inotify folder source-queue))
+(defun ballish-path (&rest more)
+  (uiop:xdg-data-home #p"ballish/" more))
 
-      (let ((queue (make-mailbox)))
-	(with-waiting-threads ((wait-for-indexing
-				:arguments (list source-index queue)
-				:name "Main source index wait indexing")
-			       (wait-for-inotify-event
-				:arguments (list inotify queue)
-				:name "Main source index wait inotify"))
-	  (loop
-	     (let ((message (receive-message queue)))
-	       (typecase message
-		 (inotify-event
-		  (handle-inotify-event inotify message source-queue))))))))))
+(defmacro with-ballish-database ((db) &body body)
+  (let ((definition (gensym)))
+    `(with-open-database (,db (ballish-path #p"ballish.db"))
+       (iter (for ,definition in *table-definitions*)
+	     (execute-non-query ,db ,definition))
+       ,@body)))
+
+(defun main ()
+  (with-inotify (inotify)
+    (with-ballish-database (db)
+      (with-source-indexing (source-index source-queue)
+	(iter (for folder in (execute-to-list db "SELECT path FROM folder"))
+	      (add-watches inotify (car folder) source-queue))
+
+	(let ((queue (make-mailbox)))
+	  (with-waiting-threads ((wait-for-indexing
+				  :arguments (list source-index queue)
+				  :name "Main source index wait indexing")
+				 (wait-for-inotify-event
+				  :arguments (list inotify queue)
+				  :name "Main source index wait inotify"))
+	    (loop
+	       (let ((message (receive-message queue)))
+		 (typecase message
+		   (inotify-event
+		    (handle-inotify-event inotify message source-queue)))))))))))
 
 (defun add-watches (inotify path source-queue)
   ;; TODO: don't watch on read-only files (either fs or permission)
