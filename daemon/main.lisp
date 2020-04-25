@@ -27,19 +27,19 @@
   (let ((thread (gensym)))
     `(let ((,thread (make-thread #',fn :arguments ,arguments :name ,name)))
        (unwind-protect
-	    (progn ,@body)
-	 (handler-case
-	     (terminate-thread ,thread)
-	   (error () nil))))))
+            (progn ,@body)
+         (handler-case
+             (terminate-thread ,thread)
+           (error () nil))))))
 
 (defmacro with-waiting-threads (thread-definitions &body body)
   (expand-waiting-threads thread-definitions body))
 
 (defun expand-waiting-threads (thread-definitions body)
-  (if (> (length thread-definitions) 0)
+  (if (= (length thread-definitions) 0)
+      `(progn ,@body)
       `(with-waiting-thread ,(first thread-definitions)
-	 ,(expand-waiting-threads (rest thread-definitions) body))
-      `(progn ,@body)))
+         ,(expand-waiting-threads (rest thread-definitions) body))))
 
 (defun main ()
   (let ((inotify (make-inotify)))
