@@ -11,7 +11,6 @@
 		#:inotify-event-mask
 		#:inotify-event-name
 		#:event-pathname/flags)
-  (:import-from :osicat-posix #:posix-error)
   (:export #:main))
 
 (in-package :ballish/daemon/main)
@@ -24,35 +23,38 @@
 
 (defvar *ignored-folders* '(".git" ".svn" ".hg" ".tox" "__pycache__"))
 
-(defun main ()
-  (let* ((source-queue (make-mailbox))
-	 (source-indexing (make-source-indexing source-queue))
-	 (inotify (make-inotify)))
-    (iter (for folder in *folders*)
-	  (add-watches inotify folder source-queue))
+(defmacro with-waiting-thread ((fn &key arguments name) &body body)
+  (let ((thread (gensym)))
+    `(let ((,thread (make-thread #',fn :arguments ,arguments :name ,name)))
+       (unwind-protect
+	    (progn ,@body)
+	 (handler-case
+	     (terminate-thread ,thread)
+	   (error () nil))))))
 
-    (unwind-protect
-	 (let* ((queue (make-mailbox))
-		(source-index-thread (make-thread #'wait-for-indexing
-						  :arguments (list source-indexing queue)
-						  :name "Main source index wait"))
-		(inotify-event-thread (make-thread #'wait-for-inotify-event
-						   :arguments (list inotify queue))))
-	   (unwind-protect
-		(loop
-		   (let ((message (receive-message queue)))
-		     (typecase message
-		       (inotify-event
-			(handle-inotify-event inotify message source-queue)))))
-	     (terminate-thread source-index-thread)
-	     (terminate-thread inotify-event-thread)))
-      (stop-indexing source-indexing))))
+(defun main ()
+  (let ((inotify (make-inotify)))
+    (with-source-indexing (source-index source-queue)
+      (iter (for folder in *folders*)
+	    (add-watches inotify folder source-queue))
+
+      (let ((queue (make-mailbox)))
+	(with-waiting-thread (wait-for-indexing :arguments (list source-index queue)
+						:name "Main source index wait indexing")
+	  (with-waiting-thread (wait-for-inotify-event
+				:arguments (list inotify queue)
+				:name "Main source index wait inotify")
+	    (loop
+	       (let ((message (receive-message queue)))
+		 (typecase message
+		   (inotify-event
+		    (handle-inotify-event inotify message source-queue)))))))))))
 
 (defun add-watches (inotify path source-queue)
   ;; TODO: don't watch on read-only files (either fs or permission)
   (handler-case
       (watch inotify path '(:create :delete :delete-self :modify :move))
-    (posix-error (e)
+    (osicat-posix:posix-error (e)
       ;; Ignore. It can be many reasons, and we just don't really
       ;; care, it means we're skipping.
       (format *error-output* "Error watching ~a: ~a~%" path e)

@@ -1,7 +1,7 @@
 (uiop:define-package :ballish/daemon/source-indexing
     (:use :cl :iterate)
   (:import-from :sb-thread #:make-thread #:terminate-thread #:join-thread)
-  (:import-from :sb-concurrency #:receive-message)
+  (:import-from :sb-concurrency #:receive-message #:make-mailbox)
   (:import-from :sb-posix #:stat #:stat-mtime #:syscall-error #:syscall-errno)
   (:import-from :sb-int #:stream-decoding-error)
   (:import-from :alexandria #:alist-hash-table #:hash-table-keys)
@@ -9,9 +9,8 @@
 		#:connect #:disconnect
 		#:execute-non-query #:execute-single
 		#:sqlite-error #:sqlite-error-code)
-  (:export #:make-source-indexing
-	   #:wait
-	   #:stop-indexing))
+  (:export #:with-source-indexing
+	   #:wait))
 
 (in-package :ballish/daemon/source-indexing)
 
@@ -45,6 +44,13 @@
      )")
   "The table definitions for the sqlite tables.")
 
+(defmacro with-source-indexing ((source-index queue) &body body)
+  `(let* ((,queue (make-mailbox))
+	  (,source-index (make-source-indexing ,queue)))
+     (unwind-protect
+	  (progn ,@body)
+       (stop-indexing ,source-index))))
+
 (defclass source-index ()
   ((thread :accessor thread)
    (files-queue :initarg :files-queue :reader files-queue)
@@ -61,14 +67,15 @@
 (defun make-source-indexing (files-queue)
   (make-instance 'source-index
 		 :files-queue files-queue
-		 :inotify (make-inotify)
 		 :db (connect (index-path #p"source.db"))))
 
 (defun wait (index)
   (join-thread (thread index)))
 
 (defun stop-indexing (index)
-  (terminate-thread (thread index))
+  (handler-case
+      (terminate-thread (thread index))
+    (error () nil))
   (disconnect (db index)))
 
 (defun index-loop (index)
@@ -109,7 +116,6 @@
 				      "UPDATE source
                                        SET content = ?, tags = ?
                                        WHERE path = ?"
-				      mtime
 				      content
 				      (format nil "~{~a~^ ~}" tags)
 				      path-str)
