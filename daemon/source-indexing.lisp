@@ -16,7 +16,9 @@
 
 (defvar *text-extensions-tags* (alist-hash-table '(("py" . ("python"))
 						   ("cfg" . ("python"))
-						   ("go" . ("golang")))
+						   ("go" . ("golang"))
+						   ("lisp" . ("lisp"))
+						   ("asd" . ("lisp")))
 						 :test #'equal))
 
 (defvar *text-extensions* (hash-table-keys *text-extensions-tags*))
