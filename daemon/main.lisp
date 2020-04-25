@@ -32,6 +32,15 @@
 	     (terminate-thread ,thread)
 	   (error () nil))))))
 
+(defmacro with-waiting-threads (thread-definitions &body body)
+  (expand-waiting-threads thread-definitions body))
+
+(defun expand-waiting-threads (thread-definitions body)
+  (if (> (length thread-definitions) 0)
+      `(with-waiting-thread ,(first thread-definitions)
+	 ,(expand-waiting-threads (rest thread-definitions) body))
+      `(progn ,@body)))
+
 (defun main ()
   (let ((inotify (make-inotify)))
     (with-source-indexing (source-index source-queue)
@@ -39,16 +48,16 @@
 	    (add-watches inotify folder source-queue))
 
       (let ((queue (make-mailbox)))
-	(with-waiting-thread (wait-for-indexing :arguments (list source-index queue)
-						:name "Main source index wait indexing")
-	  (with-waiting-thread (wait-for-inotify-event
+	(with-waiting-threads ((wait-for-indexing :arguments (list source-index queue)
+						  :name "Main source index wait indexing")
+			       (wait-for-inotify-event
 				:arguments (list inotify queue)
-				:name "Main source index wait inotify")
-	    (loop
-	       (let ((message (receive-message queue)))
-		 (typecase message
-		   (inotify-event
-		    (handle-inotify-event inotify message source-queue)))))))))))
+				:name "Main source index wait inotify"))
+	  (loop
+	     (let ((message (receive-message queue)))
+	       (typecase message
+		 (inotify-event
+		  (handle-inotify-event inotify message source-queue))))))))))
 
 (defun add-watches (inotify path source-queue)
   ;; TODO: don't watch on read-only files (either fs or permission)
