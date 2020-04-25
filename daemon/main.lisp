@@ -41,11 +41,12 @@
 (defmacro with-waiting-threads (thread-definitions &body body)
   (expand-waiting-threads thread-definitions body))
 
-(defun expand-waiting-threads (thread-definitions body)
-  (if (= (length thread-definitions) 0)
-      `(progn ,@body)
-      `(with-waiting-thread ,(first thread-definitions)
-         ,(expand-waiting-threads (rest thread-definitions) body))))
+(eval-when (:compile-toplevel)
+  (defun expand-waiting-threads (thread-definitions body)
+    (if (= (length thread-definitions) 0)
+	`(progn ,@body)
+	`(with-waiting-thread ,(first thread-definitions)
+	   ,(expand-waiting-threads (rest thread-definitions) body)))))
 
 (defun ballish-path (&rest more)
   (uiop:xdg-data-home #p"ballish/" more))
