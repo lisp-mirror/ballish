@@ -18,7 +18,10 @@
 						   ("cfg" . ("python"))
 						   ("go" . ("golang"))
 						   ("lisp" . ("lisp"))
-						   ("asd" . ("lisp")))
+						   ("asd" . ("lisp"))
+						   ("c" . ("c"))
+						   ("h" . ("c" "header"))
+						   ("cpp" . ("c++")))
 						 :test #'equal))
 
 (defvar *text-extensions* (hash-table-keys *text-extensions-tags*))

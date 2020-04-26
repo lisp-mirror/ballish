@@ -59,13 +59,17 @@
        ,@body)))
 
 (defmacro with-unix-socket-server ((socket &key path (backlog 100)) &body body)
-  `(let ((,socket (make-instance 'local-socket
-				 :type :stream)))
-     (socket-bind ,socket ,path)
-     (socket-listen ,socket ,backlog)
-     (unwind-protect
-	  (progn ,@body)
-       (socket-close ,socket))))
+  `(progn
+     (handler-case
+	 (delete-file ,path)
+       (file-error () nil))
+     (let ((,socket (make-instance 'local-socket
+				   :type :stream)))
+       (socket-bind ,socket ,path)
+       (socket-listen ,socket ,backlog)
+       (unwind-protect
+	    (progn ,@body)
+	 (socket-close ,socket)))))
 
 (defmacro with-ballish-server ((socket) &body body)
   `(progn
