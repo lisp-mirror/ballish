@@ -21,7 +21,13 @@
   (:name :verbose
    :description "verbose output"
    :short #\v
-   :long "verbose"))
+   :long "verbose")
+  (:name :query
+   :description "run a query"
+   :short #\q
+   :long "query"
+   :arg-parser #'identity
+   :meta-var "QUERY"))
 
 (defun fatal (&rest args)
   (format *error-output* "fatal: ~a~%" (apply #'format nil args))
@@ -44,18 +50,18 @@
 	  (fatal "cannot parse ~s as argument of ~s" (raw-arg e) (option e)))
 	(missing-required-option (e)
 	  (fatal "~a" e)))
- 
+
+    (when args
+      (fatal "unknown parameters: ~{~a~^, ~}" args))
+
     (when-option (options :help)
       (opts:describe
        :prefix "blazing-fast code source search"
-       :usage-of "bl"
-       :args "[QUERY|FOLDER]")
+       :usage-of "bl")
       (uiop:quit 0))
 
     (when-option (options :verbose)
       (format t "Running in verbose mode.~%"))
 
-    (unless args
-      (fatal "invalid argument"))
-
-    (format t "Args: ~a~%" args)))
+    (when-option (options :query)
+      (format t "Chosen query: ~s~%" (getf options :query)))))
