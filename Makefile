@@ -1,4 +1,4 @@
-all: ballish-daemon ballish-client
+all: ballish-daemon bl
 
 ballish-daemon: $(wildcard daemon/*.lisp)
 	sbcl \
@@ -8,7 +8,7 @@ ballish-daemon: $(wildcard daemon/*.lisp)
 		--eval '(ql:quickload :ballish)' \
 		--eval '(asdf:make :ballish)'
 
-ballish-client: $(wildcard client/*.lisp)
+bl: $(wildcard client/*.lisp)
 	sbcl \
 		--load ~/quicklisp/setup.lisp \
 		--eval '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format t "~A~%" c) (uiop:quit -1)))' \
