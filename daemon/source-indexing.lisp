@@ -20,8 +20,11 @@
 						   ("lisp" . ("lisp"))
 						   ("asd" . ("lisp"))
 						   ("c" . ("c"))
-						   ("h" . ("c" "header"))
-						   ("cpp" . ("c++")))
+						   ("h" . ("c" "c++" "header"))
+						   ("cpp" . ("c++"))
+						   ("pl" . ("perl"))
+						   ("php" . ("php"))
+						   ("js" . ("javascript")))
 						 :test #'equal))
 
 (defvar *text-extensions* (hash-table-keys *text-extensions-tags*))
