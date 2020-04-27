@@ -73,7 +73,8 @@
        :usage-of "bl")
       (uiop:quit 0))
 
-    (when-option (options :query)
+    (when (or (getf options :query)
+	      (getf options :tags))
       (return-from main (query (getf options :query) (getf options :tags))))
 
     (when-option (options :folder)
@@ -87,18 +88,17 @@
 
 (defun query (q tags)
   (with-open-database (db (index-path #p"source.db") :busy-timeout 1000)
-    (format t "~{~a~%~}"
-	    (mapcar
-	     #'car
-	     (if tags
-		 (execute-to-list
-		  db
-		  (format
-		    nil
-		    "SELECT path FROM source WHERE content MATCH ? ~a"
-		    (format nil "~{AND tags MATCH ~s ~}" (split "," tags)))
-		  q)
-		 (execute-to-list db "SELECT path FROM source WHERE content MATCH ?" q))))))
+    (let ((query
+	   (format
+	    nil
+	    "SELECT path FROM source WHERE ~a ~a"
+	    (if q (format nil "content MATCH ~s" q) "")
+	    (if tags
+		(format nil "~a ~{tags MATCH ~s~^AND ~}"
+			(if q "AND " "")
+			(split "," tags))
+		""))))
+      (format t "~{~a~%~}" (mapcar #'car (execute-to-list db query))))))
 
 (defun add-folder (folder)
   (with-open-database (db (ballish-path #p"ballish.db") :busy-timeout 1000)
