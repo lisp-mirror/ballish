@@ -18,6 +18,10 @@ ballish can search across thousands and thousands of files in a few
 milliseconds. How? It will index your source code, live, whenever it
 changes. Then searching in the index is instant.
 
+## Usage
+
+N/A yet.
+
 ## Installation
 
 N/A yet.
