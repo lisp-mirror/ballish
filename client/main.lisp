@@ -13,7 +13,9 @@
   (:import-from :cl-ppcre #:split)
   (:import-from :sb-bsd-sockets
 		#:socket
-		#:local-socket)
+		#:local-socket
+		#:socket-connect
+		#:socket-close)
   (:export #:main))
 
 (in-package :ballish/client/main)
@@ -69,7 +71,7 @@
 
     (when-option (options :help)
       (opts:describe
-       :prefix "blazing-fast code source search"
+       :prefix "a pretty fast code search tool"
        :usage-of "bl")
       (uiop:quit 0))
 
@@ -95,7 +97,7 @@
 	    (if q (format nil "content MATCH ~s" q) "")
 	    (if tags
 		(format nil "~a ~{tags MATCH ~s~^AND ~}"
-			(if q "AND " "")
+			(if q "AND" "")
 			(split "," tags))
 		""))))
       (format t "~{~a~%~}" (mapcar #'car (execute-to-list db query))))))
@@ -105,6 +107,8 @@
     (execute-non-query db "INSERT INTO folder (path) VALUES(?)" folder)
 
     (let ((socket (make-instance 'local-socket :type :stream)))
-      (sb-bsd-sockets:socket-connect
-       socket
-       (namestring (uiop:xdg-runtime-dir #p"ballish/daemon.sock"))))))
+      (unwind-protect
+	   (socket-connect
+	    socket
+	    (namestring (uiop:xdg-runtime-dir #p"ballish/daemon.sock")))
+	(socket-close socket)))))
