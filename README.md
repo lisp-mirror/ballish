@@ -33,8 +33,6 @@ to look at the dependency graph.
 
 ## Roadmap
 
-- Refactor the database code into its own package, e.g. DRY index-path
-  etc.
 - Add a `select count(*)` command.
 - Add search on Git commits.
 - Implement deletion.

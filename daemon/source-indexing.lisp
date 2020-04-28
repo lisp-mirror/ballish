@@ -1,5 +1,5 @@
 (uiop:define-package :ballish/daemon/source-indexing
-    (:use :cl :iterate)
+    (:use :cl :iterate :ballish/util/*)
   (:import-from :sb-thread #:make-thread #:terminate-thread #:join-thread)
   (:import-from :sb-concurrency #:receive-message #:make-mailbox)
   (:import-from :sb-posix #:stat #:stat-mtime #:syscall-error #:syscall-errno)
@@ -75,7 +75,7 @@
 (defun make-source-indexing (files-queue)
   (make-instance 'source-index
 		 :files-queue files-queue
-		 :db (connect (index-path #p"source.db"))))
+		 :db (connect (source-index-db-path))))
 
 (defun wait (index)
   (join-thread (thread index)))
@@ -89,9 +89,6 @@
 (defun index-loop (index)
   (loop
      (index-file index (receive-message (files-queue index)))))
-
-(defun index-path (&rest more)
-  (uiop:xdg-data-home #p"ballish/" more))
 
 (defun index-file (index path)
   (let ((path-type (pathname-type path)))

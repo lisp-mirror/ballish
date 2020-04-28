@@ -1,5 +1,5 @@
 (uiop:define-package :ballish/client/main
-    (:use :cl)
+    (:use :cl :ballish/util/*)
   (:import-from :unix-opts
 		#:define-opts
 		#:get-opts
@@ -82,14 +82,8 @@
     (when-option (options :folder)
       (return-from main (add-folder (getf options :folder))))))
 
-(defun index-path (&rest more)
-  (uiop:xdg-data-home #p"ballish/" more))
-
-(defun ballish-path (&rest more)
-  (uiop:xdg-data-home #p"ballish/" more))
-
 (defun query (q tags)
-  (with-open-database (db (index-path #p"source.db") :busy-timeout 1000)
+  (with-open-database (db (source-index-db-path) :busy-timeout 1000)
     (let ((query
 	   (format
 	    nil
@@ -103,7 +97,7 @@
       (format t "~{~a~%~}" (mapcar #'car (execute-to-list db query))))))
 
 (defun add-folder (folder)
-  (with-open-database (db (ballish-path #p"ballish.db") :busy-timeout 1000)
+  (with-open-database (db (ballish-db-path) :busy-timeout 1000)
     (execute-non-query db "INSERT INTO folder (path) VALUES(?)" folder)
 
     (let ((socket (make-instance 'local-socket :type :stream)))

@@ -1,5 +1,5 @@
 (uiop:define-package :ballish/daemon/main
-    (:use :cl :iterate :ballish/daemon/source-indexing)
+    (:use :cl :iterate :ballish/daemon/source-indexing :ballish/util/*)
   (:import-from :sb-concurrency #:make-mailbox #:send-message #:receive-message)
   (:import-from :sb-thread #:make-thread #:terminate-thread)
   (:import-from :cl-inotify
@@ -48,12 +48,9 @@
 	`(with-waiting-thread ,(first thread-definitions)
 	   ,(expand-waiting-threads (rest thread-definitions) body)))))
 
-(defun ballish-path (&rest more)
-  (uiop:xdg-data-home #p"ballish/" more))
-
 (defmacro with-ballish-database ((db) &body body)
   (let ((definition (gensym)))
-    `(with-open-database (,db (ballish-path #p"ballish.db"))
+    `(with-open-database (,db (ballish-db-path))
        (iter (for ,definition in *table-definitions*)
 	     (execute-non-query ,db ,definition))
        ,@body)))
