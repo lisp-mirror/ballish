@@ -9,8 +9,11 @@
 		#:missing-arg
 		#:arg-parser-failed
 		#:missing-required-option)
+  (:import-from :cl-cpus #:get-number-of-processors)
   (:import-from :sqlite #:with-open-database #:execute-to-list #:execute-non-query)
   (:import-from :cl-ppcre #:split #:regex-replace-all)
+  (:import-from :sb-thread #:make-thread #:join-thread)
+  (:import-from :sb-concurrency #:make-mailbox #:receive-message #:send-message)
   (:import-from :sb-bsd-sockets
 		#:socket
 		#:local-socket
@@ -133,12 +136,30 @@
   (query q tags t))
 
 (defun grep (query results)
-  (let ((search (regex-replace-all "(\\w+)"
-				   (regex-replace-all "[\\+\\s]+" query ".*")
-				   "\\b\\1\\b")))
+  (setf *random-state* (make-random-state t))
+  (let* ((ncpus (get-number-of-processors))
+	 (search (regex-replace-all "(\\w+)"
+				       (regex-replace-all "[\\+\\s]+" query ".*")
+				       "\\b\\1\\b"))
+	 (queues (iter (repeat ncpus) (collect (make-mailbox))))
+	 (threads (iter (for i from 0 to (1- ncpus))
+			(collect (make-thread #'grep-command
+					      :arguments
+					      (list (elt queues i) search))))))
     (iter (for result in results)
-	  (handler-case
-	      (uiop:run-program
-	       (format nil "grep -HPins ~s ~s" search result)
-	       :output :interactive :error-output :interactive :input :interactive)
-	    (error () nil)))))
+	  (send-message (elt queues (random ncpus)) result))
+    (iter (for queue in queues)
+	  (send-message queue nil))
+    (iter (for thread in threads)
+	  (join-thread thread))))
+
+(defun grep-command (queue search)
+  (loop
+     (let ((file (receive-message queue)))
+       (unless file
+	 (return-from grep-command))
+       (handler-case
+	   (uiop:run-program
+	    (format nil "grep -HPins ~s ~s" search file)
+	    :output :interactive :error-output :interactive :input :interactive)
+	 (error () nil)))))
