@@ -136,11 +136,25 @@
   (query q tags t))
 
 (defun grep (query results)
+  ;; arbitrary limit to start going down with threads
+  (if (> (length results) 20)
+      (threaded-grep query results)
+      (simple-grep query results)))
+
+(defun simple-grep (query results)
+  (iter (for result in results)
+	(handler-case
+	    (uiop:run-program
+	     (format nil "grep -HPins ~s ~s" search result)
+	     :output :interactive :error-output :interactive :input :interactive)
+	  (error () nil))))
+
+(defun threaded-grep (query results)
   (setf *random-state* (make-random-state t))
   (let* ((ncpus (get-number-of-processors))
 	 (search (regex-replace-all "(\\w+)"
-				       (regex-replace-all "[\\+\\s]+" query ".*")
-				       "\\b\\1\\b"))
+				    (regex-replace-all "[\\+\\s]+" query ".*")
+				    "\\b\\1\\b"))
 	 (queues (iter (repeat ncpus) (collect (make-mailbox))))
 	 (threads (iter (for i from 0 to (1- ncpus))
 			(collect (make-thread #'grep-command
