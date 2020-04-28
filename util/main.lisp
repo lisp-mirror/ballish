@@ -3,7 +3,7 @@
   (:export #:ballish-db-path
 	   #:source-index-db-path))
 
-(in-package :ballish/daemon/main)
+(in-package :ballish/util/main)
 
 (defun ballish-path (&rest more)
   (uiop:xdg-data-home #p"ballish/" more))

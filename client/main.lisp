@@ -42,7 +42,11 @@
    :short #\f
    :long "folder"
    :arg-parser #'identity
-   :meta-var "FOLDER"))
+   :meta-var "FOLDER")
+  (:name :count
+   :description "count the results of a query"
+   :short #\c
+   :long "count"))
 
 (defun fatal (&rest args)
   (format *error-output* "fatal: ~a~%" (apply #'format nil args))
@@ -75,6 +79,13 @@
        :usage-of "bl")
       (uiop:quit 0))
 
+    (when-option (options :count)
+      (if (or (getf options :query)
+	      (getf options :tags))
+	  (return-from main (query-count (getf options :query)
+					 (getf options :tags)))
+	  (fatal "cannot count without a query")))
+
     (when (or (getf options :query)
 	      (getf options :tags))
       (return-from main (query (getf options :query) (getf options :tags))))
@@ -82,12 +93,13 @@
     (when-option (options :folder)
       (return-from main (add-folder (getf options :folder))))))
 
-(defun query (q tags)
+(defun query (q tags &optional (count nil))
   (with-open-database (db (source-index-db-path) :busy-timeout 1000)
     (let ((query
 	   (format
 	    nil
-	    "SELECT path FROM source WHERE ~a ~a"
+	    "SELECT ~a FROM source WHERE ~a ~a"
+	    (if count "count(*)" "path")
 	    (if q (format nil "content MATCH ~s" q) "")
 	    (if tags
 		(format nil "~a ~{tags MATCH ~s~^AND ~}"
@@ -106,3 +118,6 @@
 	    socket
 	    (namestring (uiop:xdg-runtime-dir #p"ballish/daemon.sock")))
 	(socket-close socket)))))
+
+(defun query-count (q tags)
+  (query q tags t))

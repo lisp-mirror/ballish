@@ -33,7 +33,6 @@ to look at the dependency graph.
 
 ## Roadmap
 
-- Add a `select count(*)` command.
 - Add search on Git commits.
 - Implement deletion.
 - Offer some systemd service for the daemon + instructions on
