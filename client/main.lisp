@@ -1,5 +1,5 @@
 (uiop:define-package :ballish/client/main
-    (:use :cl :ballish/util/*)
+    (:use :cl :iterate :ballish/util/*)
   (:import-from :unix-opts
 		#:define-opts
 		#:get-opts
@@ -10,7 +10,7 @@
 		#:arg-parser-failed
 		#:missing-required-option)
   (:import-from :sqlite #:with-open-database #:execute-to-list #:execute-non-query)
-  (:import-from :cl-ppcre #:split)
+  (:import-from :cl-ppcre #:split #:regex-replace-all)
   (:import-from :sb-bsd-sockets
 		#:socket
 		#:local-socket
@@ -46,7 +46,11 @@
   (:name :count
    :description "count the results of a query"
    :short #\c
-   :long "count"))
+   :long "count")
+  (:name :grep
+   :description "show grep results for a query"
+   :short #\g
+   :long "grep"))
 
 (defun fatal (&rest args)
   (format *error-output* "fatal: ~a~%" (apply #'format nil args))
@@ -82,13 +86,19 @@
     (when-option (options :count)
       (if (or (getf options :query)
 	      (getf options :tags))
-	  (return-from main (query-count (getf options :query)
-					 (getf options :tags)))
+	  (return-from main
+	    (format t "~{~a~%~}"
+		    (query-count (getf options :query)
+				 (getf options :tags))))
 	  (fatal "cannot count without a query")))
 
     (when (or (getf options :query)
 	      (getf options :tags))
-      (return-from main (query (getf options :query) (getf options :tags))))
+      (return-from main
+	(let ((results (query (getf options :query) (getf options :tags))))
+	  (if (getf options :grep)
+	      (grep (getf options :query) results)
+	      (format t "~{~a~%~}" results)))))
 
     (when-option (options :folder)
       (return-from main (add-folder (getf options :folder))))))
@@ -106,7 +116,7 @@
 			(if q "AND" "")
 			(split "," tags))
 		""))))
-      (format t "~{~a~%~}" (mapcar #'car (execute-to-list db query))))))
+      (mapcar #'car (execute-to-list db query)))))
 
 (defun add-folder (folder)
   (with-open-database (db (ballish-db-path) :busy-timeout 1000)
@@ -121,3 +131,14 @@
 
 (defun query-count (q tags)
   (query q tags t))
+
+(defun grep (query results)
+  (let ((search (regex-replace-all "(\\w+)"
+				   (regex-replace-all "[\\+\\s]+" query ".*")
+				   "\\b\\1\\b")))
+    (iter (for result in results)
+	  (handler-case
+	      (uiop:run-program
+	       (format nil "grep -HPins ~s ~s" search result)
+	       :output :interactive :error-output :interactive :input :interactive)
+	    (error () nil)))))
