@@ -53,7 +53,11 @@
   (:name :grep
    :description "show grep results for a query"
    :short #\g
-   :long "grep"))
+   :long "grep")
+  (:name :optimize
+   :description "optimize the search index storage"
+   :short #\o
+   :long "optimize"))
 
 (defun fatal (&rest args)
   (format *error-output* "fatal: ~a~%" (apply #'format nil args))
@@ -85,6 +89,12 @@
        :prefix "a pretty fast code search tool"
        :usage-of "bl")
       (uiop:quit 0))
+
+    (when-option (options :optimize)
+      (return-from main
+	(progn
+	  (format t "Optimizing storage...~%")
+	  (optimize-fts))))
 
     (when-option (options :count)
       (if (or (getf options :query)
@@ -147,3 +157,7 @@
 	 (format nil "grep -HPins ~s ~{~s~^ ~}" search results)
 	 :output :interactive :error-output :interactive :input :interactive)
       (error (e) (format *error-output* "~a~%" e)))))
+
+(defun optimize-fts ()
+  (with-open-database (db (source-index-db-path) :busy-timeout 10000)
+    (execute-non-query db "INSERT INTO source(source) VALUES('optimize')")))
