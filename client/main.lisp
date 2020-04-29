@@ -136,44 +136,14 @@
   (query q tags t))
 
 (defun grep (query results)
-  ;; arbitrary limit to start going down with threads
-  (if (> (length results) 20)
-      (threaded-grep query results)
-      (simple-grep query results)))
-
-(defun simple-grep (query results)
-  (iter (for result in results)
-	(handler-case
-	    (uiop:run-program
-	     (format nil "grep -HPins ~s ~s" search result)
-	     :output :interactive :error-output :interactive :input :interactive)
-	  (error () nil))))
-
-(defun threaded-grep (query results)
-  (setf *random-state* (make-random-state t))
-  (let* ((ncpus (get-number-of-processors))
-	 (search (regex-replace-all "(\\w+)"
-				    (regex-replace-all "[\\+\\s]+" query ".*")
-				    "\\b\\1\\b"))
-	 (queue (make-mailbox))
-	 (threads (iter (for i from 0 to (1- ncpus))
-			(collect (make-thread #'grep-command
-					      :arguments
-					      (list queue search))))))
-    (iter (for result in results)
-	  (send-message queue result))
-    (iter (repeat ncpus)
-	  (send-message queue nil))
-    (iter (for thread in threads)
-	  (join-thread thread))))
-
-(defun grep-command (queue search)
-  (loop
-     (let ((file (receive-message queue)))
-       (unless file
-	 (return-from grep-command))
-       (handler-case
-	   (uiop:run-program
-	    (format nil "grep -HPins ~s ~s" search file)
-	    :output :interactive :error-output :interactive :input :interactive)
-	 (error () nil)))))
+  (when (> (length results) (or (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS" 100))
+				100))
+    (fatal "too many results to grep."))
+  (let ((search (regex-replace-all "(\\w+)"
+				   (regex-replace-all "[\\+\\s]+" query ".*")
+				   "\\b\\1\\b")))
+    (handler-case
+	(uiop:run-program
+	 (format nil "grep -HPins ~s ~{~s~^ ~}" search results)
+	 :output :interactive :error-output :interactive :input :interactive)
+      (error (e) (format *error-output* "~a~%" e)))))
