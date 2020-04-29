@@ -146,7 +146,8 @@
   (query q tags t))
 
 (defun grep (query results)
-  (when (> (length results) (or (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS" 100))
+  (when (> (length results) (or (and (uiop:getenv "BL_MAX_GREP_RESULTS")
+				     (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS")))
 				100))
     (fatal "too many results to grep."))
   (let ((search (regex-replace-all "(\\w+)"
