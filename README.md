@@ -41,5 +41,4 @@ to look at the dependency graph.
 - Use a logging library and log many things.
 - Write a man page.
 - Don't watch EPERM/read-only folders.
-- Add :move-from/move-to.
 - Complete list of ignored folders.

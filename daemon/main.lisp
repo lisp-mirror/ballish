@@ -165,11 +165,13 @@
 		(or (member :create mask)
 		    (member :modify mask)
 		    (member :delete mask)
-		    (member :delete-self mask)))
+		    (member :delete-self mask)
+		    (member :move-to mask)))
 	   (send-message source-queue (list :add path)))
 
-	  ;; TODO: add :move-from/:move-to
-	  )))
+	  ((and (not (member :isdir mask))
+		(member :move-from mask))
+	   (send-message source-queue (list :delete path))))))
 
 (defun get-folders (db)
   (mapcar #'car (execute-to-list db "SELECT path FROM folder")))
