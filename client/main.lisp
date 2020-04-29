@@ -155,14 +155,14 @@
 	 (search (regex-replace-all "(\\w+)"
 				    (regex-replace-all "[\\+\\s]+" query ".*")
 				    "\\b\\1\\b"))
-	 (queues (iter (repeat ncpus) (collect (make-mailbox))))
+	 (queue (make-mailbox))
 	 (threads (iter (for i from 0 to (1- ncpus))
 			(collect (make-thread #'grep-command
 					      :arguments
-					      (list (elt queues i) search))))))
+					      (list queue search))))))
     (iter (for result in results)
-	  (send-message (elt queues (random ncpus)) result))
-    (iter (for queue in queues)
+	  (send-message queue result))
+    (iter (repeat ncpus)
 	  (send-message queue nil))
     (iter (for thread in threads)
 	  (join-thread thread))))
