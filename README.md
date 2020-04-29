@@ -40,5 +40,4 @@ to look at the dependency graph.
 - Provide .deb/.rpm/.pkgbuild packages.
 - Use a logging library and log many things.
 - Write a man page.
-- Don't watch EPERM/read-only folders.
 - Complete list of ignored folders.
