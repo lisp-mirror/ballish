@@ -142,7 +142,12 @@
 
 (defun index-loop (index)
   (loop
-     (index-file index (receive-message (files-queue index)))))
+     (destructuring-bind (action path)
+	 (receive-message (files-queue index))
+       (cond ((equal action :add)
+	      (index-file index path))
+	     ((equal action :delete)
+	      (deindex-source index path))))))
 
 (defun index-file (index path)
   (let ((path-type (pathname-type path)))

@@ -7,6 +7,7 @@
 		#:read-event
 		#:inotify-event
 		#:watch
+		#:unwatch
 		#:inotify-event-mask
 		#:inotify-event-name
 		#:event-pathname/flags)
@@ -90,7 +91,7 @@
 (defun main-loop (db inotify socket source-index source-queue folders)
   (let ((queue (make-mailbox)))
     (with-waiting-threads ((wait-for-indexing
-			    :arguments (list source-index queue)
+			    :arguments (list source-index)
 			    :name "Main source index wait indexing")
 			   (wait-for-inotify-event
 			    :arguments (list inotify queue)
@@ -108,10 +109,14 @@
 	      (setf folders
 		    (handle-client-socket message db inotify source-queue folders)))))))))
 
-(defun add-watches (inotify path source-queue)
+(defun add-watches (inotify path source-queue &optional (action :add))
   ;; TODO: don't watch on read-only files (either fs or permission)
   (handler-case
-      (watch inotify path '(:create :delete :delete-self :modify :move))
+      (cond
+	((equal action :add)
+	 (watch inotify path '(:create :delete :delete-self :modify :move)))
+	((equal action :delete)
+	 (unwatch inotify :pathname path)))
     (osicat-posix:posix-error (e)
       ;; Ignore. It can be many reasons, and we just don't really
       ;; care, it means we're skipping.
@@ -121,7 +126,7 @@
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
     (iter (for p in (directory wild-path))
 	  (when (pathname-name p)
-	    (send-message source-queue p))
+	    (send-message source-queue (list action p)))
 
 	  (when (and (not (pathname-name p))
 		     (not (member (first (last (pathname-directory p)))
@@ -129,8 +134,11 @@
 				  :test #'string=)))
 	    (add-watches inotify p source-queue)))))
 
-(defun wait-for-indexing (source-indexing queue)
-  (send-message queue (wait source-indexing)))
+(defun remove-watches (inotify path source-queue)
+  (add-watches inotify path source-queue :delete))
+
+(defun wait-for-indexing (source-indexing)
+  (wait source-indexing))
 
 (defun wait-for-inotify-event (inotify queue)
   (loop
@@ -158,7 +166,7 @@
 		    (member :modify mask)
 		    (member :delete mask)
 		    (member :delete-self mask)))
-	   (send-message source-queue path))
+	   (send-message source-queue (list :add path)))
 
 	  ;; TODO: add :move-from/:move-to
 	  )))
@@ -169,9 +177,13 @@
 (defun handle-client-socket (socket db inotify source-queue folders)
   (unwind-protect
        (let* ((new-folders (get-folders db))
-	      (folders-to-watch (set-difference new-folders folders :test #'equal)))
+	      (folders-to-watch (set-difference new-folders folders :test #'equal))
+	      (folders-to-delete (set-difference folders new-folders :test #'equal)))
 	 (iter (for folder in folders-to-watch)
 	       (add-watches inotify folder source-queue))
+
+	 (iter (for folder in folders-to-delete)
+	       (remove-watches inotify folder source-queue))
 
 	 new-folders)
     (socket-close socket)))
