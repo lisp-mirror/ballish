@@ -19,6 +19,7 @@
 		#:socket-listen
 		#:socket-close
 		#:socket-accept)
+  (:import-from :log4cl #:log-debug #:log-info)
   (:export #:main))
 
 (in-package :ballish/daemon/main)
@@ -82,8 +83,11 @@
     (with-ballish-database (db)
       (with-source-indexing (source-index source-queue)
 	(let ((folders (get-folders db)))
+	  (log-info "Adding watches on folders ~a" folders)
 	  (iter (for folder in folders)
 		(add-watches inotify folder source-queue))
+
+	  (log-debug "Watches added, entering main loop now")
 
 	  (with-ballish-server (socket)
 	    (main-loop db inotify socket source-index source-queue folders)))))))
@@ -101,6 +105,7 @@
 			    :name "Main wait client socket"))
       (loop
 	 (let ((message (receive-message queue)))
+	   (log-debug "Received message ~a" message)
 	   (typecase message
 	     (inotify-event
 	      (handle-inotify-event inotify message source-queue))
@@ -111,6 +116,7 @@
 
 (defun add-watches (inotify path source-queue &optional (action :add))
   ;; TODO: don't watch on read-only files (either fs or permission)
+  (log-debug "Watching ~a with action ~a" path action)
   (handler-case
       (cond
 	((equal action :add)
@@ -151,6 +157,7 @@
 (defun handle-inotify-event (inotify event source-queue)
   (let* ((mask (inotify-event-mask event))
 	 (path (event-pathname/flags inotify event)))
+    (log-debug "Got event ~a for path ~a" event path)
     (cond (;; New folder
 	   (and (member :create mask) (member :isdir mask))
 	   (add-watches

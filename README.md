@@ -38,5 +38,4 @@ to look at the dependency graph.
   `inotify.max_user_files`.
 - Write an emacs package/vim plugin.
 - Provide .deb/.rpm/.pkgbuild packages.
-- Use a logging library and log many things.
 - Write a man page.

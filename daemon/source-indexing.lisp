@@ -9,6 +9,7 @@
 		#:connect #:disconnect
 		#:execute-non-query #:execute-single
 		#:sqlite-error #:sqlite-error-code)
+  (:import-from :log4cl #:log-debug)
   (:export #:with-source-indexing
 	   #:wait))
 
@@ -152,6 +153,7 @@
 (defun index-file (index path)
   (let ((path-type (pathname-type path)))
     (when (member path-type *text-extensions* :test #'string=)
+      (log-debug "Indexing file ~a" path)
       (handler-case
 	  (let ((s (stat path)))
 	    (index-source index
@@ -161,9 +163,11 @@
 			  (gethash path-type *text-extensions-tags*)))
 	(syscall-error (e)
 	  (when (= (syscall-errno e) 2)
+	    (log-debug "Deindexing file ~a" path)
 	    (deindex-source index path)))
 	(stream-decoding-error ()
 	  ;; Ignore non-valid-utf-8 files
+	  (log-debug "~a was a binary file?" path)
 	  nil)))))
 
 (defun index-source (index path mtime content tags)
@@ -207,6 +211,7 @@
 	     (error e))))))
 
 (defun deindex-source (index path)
+  (log-debug "Deindexing-source ~a" path)
   (let ((path-str (namestring path)))
     (execute-non-query (db index) "DELETE FROM source WHERE path = ?" path-str)
     (execute-non-query (db index) "DELETE FROM source_meta WHERE path = ?" path-str)))
