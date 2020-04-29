@@ -1,4 +1,4 @@
-all: ballish-daemon bl
+all: ballish-daemon bl ballish.1.gz
 
 ballish-daemon: $(wildcard daemon/*.lisp)
 	sbcl \
@@ -15,3 +15,6 @@ bl: $(wildcard client/*.lisp)
 		--eval '(push "$(PWD)/" asdf:*central-registry*)' \
 		--eval '(ql:quickload :ballish/client)' \
 		--eval '(asdf:make :ballish/client)'
+
+ballish.1.gz: MANUAL.md
+	pandoc -s -t man $< | gzip -9 > $@
