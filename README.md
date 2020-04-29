@@ -40,4 +40,3 @@ to look at the dependency graph.
 - Provide .deb/.rpm/.pkgbuild packages.
 - Use a logging library and log many things.
 - Write a man page.
-- Complete list of ignored folders.
