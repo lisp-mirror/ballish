@@ -16,9 +16,9 @@ compilation:
   artifacts:
     expire_in: '1 hour'
     paths:
-      - ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
-      - ballish-"${CI_BUILD_TAG:-1.0.0}"-1.x86_64.rpm
-      - ballish-"${CI_BUILD_TAG:-1.0.0}"-1-x86_64.pkg.tar.xz
+      - ballish_${CI_BUILD_TAG:-1.0.0}_amd64.deb
+      - ballish-${CI_BUILD_TAG:-1.0.0}-1.x86_64.rpm
+      - ballish-${CI_BUILD_TAG:-1.0.0}-1-x86_64.pkg.tar.xz
 
 release:
   stage: publish
