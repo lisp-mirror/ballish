@@ -54,8 +54,8 @@ node_modules folders, and all of those is encouraged.
 # GREP
 
 By default, ballish results will be the files in which the results
-have been found. You might prefer a better output with <file>:<line
-number>:<line>, which is what the `--grep` option gives you.
+have been found. You might prefer a better output with `<file>:<line
+number>:<line>`, which is what the `--grep` option gives you.
 
 Note that the option will error if more than 100 results are
 found. The primary use case for this option is integration with

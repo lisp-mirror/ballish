@@ -37,9 +37,13 @@ Clone [wild-package-inferred-system][5] in your
 `~/quicklisp/local-projects/`, and then you can run `make`. The
 `ballish-daemon` and `bl` binaries will appear in your folder.
 
+You will need to run `ballish-daemon` as a daemon (likely as a systemd
+service, see the sample [ballish-daemon.service][6] file) before
+running any `bl` command.
+
 ## License
 
-[GPLv2][6].
+[GPLv2][7].
 
 ## Roadmap
 
@@ -53,4 +57,5 @@ Clone [wild-package-inferred-system][5] in your
   [3]: https://www.quicklisp.org/beta/
   [4]: https://pandoc.org/
   [5]: https://github.com/privet-kitty/wild-package-inferred-system
-  [6]: LICENSE
+  [6]: ballish-daemon.service
+  [7]: LICENSE
