@@ -2,3 +2,6 @@
 ballish-daemon
 bl
 ballish.1.gz
+*.rpm
+*.deb
+*.tar.xz

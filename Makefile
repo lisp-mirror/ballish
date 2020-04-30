@@ -18,3 +18,10 @@ bl: $(wildcard client/*.lisp)
 
 ballish.1.gz: MANUAL.md
 	pandoc -s -t man $< | gzip -9 > $@
+
+.PHONY: release
+
+release:
+	fpm -s dir -t deb -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/
+	fpm -s dir -t rpm -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/
+	fpm -s dir -t pacman -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/

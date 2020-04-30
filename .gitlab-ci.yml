@@ -1,9 +1,30 @@
-image: daewok/lisp-devel
+stages:
+  - build
+  - publish
 
-build:
+compilation:
+  stage: build
+  image: daewok/lisp-devel
   script:
     - apt-get update -qq
-    - apt-get install -y git-core pandoc
+    - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential rpm dpkg-dev bsdtar
+    - gem install --no-document fpm
     - export HOME=/home/lisp
     - git clone https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/
     - make
+    - make release VERSION="${CI_BUILD_TAG:-1.0.0}"
+  artifacts:
+    expire_in: '1 hour'
+    paths:
+      - ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
+      - ballish-"${CI_BUILD_TAG:-1.0.0}"-1.x86_64.rpm
+      - ballish-"${CI_BUILD_TAG:-1.0.0}"-1-x86_64.pkg.tar.xz
+
+release:
+  stage: publish
+  image: inetprocess/gitlab-release
+  only:
+    refs:
+      - tags
+  script:
+    - gitlab-release ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish-"${CI_BUILD_TAG:-1.0.0}"-1.x86_64.rpm ballish-"${CI_BUILD_TAG:-1.0.0}"-1-x86_64.pkg.tar.xz
