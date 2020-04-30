@@ -109,6 +109,8 @@ $
 
 # LICENSE
 
+GPLv2
+
 # SEE ALSO
 
 The ballish source code and all documentation may be downloaded from

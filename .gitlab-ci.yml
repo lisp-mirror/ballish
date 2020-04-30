@@ -7,6 +7,12 @@ compilation:
   image: daewok/lisp-devel
   script:
     - apt-get update -qq
+    # git-core: needed to run git clone a bit later
+    # pandoc: needed to build the manual
+    # ruby/ruby-dev/rubygems/build-essential: needed to install fpm
+    # rpm: needed to build a .rpm
+    # dpkg-dev: needed to build a .deb
+    # bsdtar: needed to build a .pkg.tar.xz
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential rpm dpkg-dev bsdtar
     - gem install --no-document fpm
     - export HOME=/home/lisp

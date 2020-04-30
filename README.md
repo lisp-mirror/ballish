@@ -20,18 +20,37 @@ changes. Then searching in the index is instant.
 
 ## Usage
 
-N/A yet.
+See the [manual][0].
 
 ## Installation
 
-N/A yet.
+You can find the latest .rpm (Red Hat, CentOS, Fedora), .deb (Ubuntu,
+Debian) or .pkg.tar.xz (Arch) on the [releases page][1].
+
+If you want to build ballish yourself, you will need:
+
+- [sbcl][2]
+- [QuickLisp][3]
+- [pandoc][4]
+
+Clone [wild-package-inferred-system][5] in your
+`~/quicklisp/local-projects/`, and then you can run `make`. The
+`ballish-daemon` and `bl` binaries will appear in your folder.
 
 ## License
 
-N/A yet. Likely going to be GPLv3. I'd rather go for GPLv2 but I need
-to look at the dependency graph.
+[GPLv2][6].
 
 ## Roadmap
 
 - Add search on Git commits.
 - Write an emacs package/vim plugin.
+
+
+  [0]: MANUAL.md
+  [1]: https://gitlab.com/ralt/ballish/-/releases
+  [2]: http://sbcl.org
+  [3]: https://www.quicklisp.org/beta/
+  [4]: https://pandoc.org/
+  [5]: https://github.com/privet-kitty/wild-package-inferred-system
+  [6]: LICENSE

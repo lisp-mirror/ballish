@@ -1,4 +1,5 @@
 (defsystem "ballish"
+  :license "GPLv2"
   :defsystem-depends-on ("wild-package-inferred-system")
   :class "winfer:wild-package-inferred-system"
   :depends-on ("ballish/daemon/*")
