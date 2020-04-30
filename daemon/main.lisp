@@ -19,6 +19,7 @@
 		#:socket-listen
 		#:socket-close
 		#:socket-accept)
+  (:import-from :sb-posix #:getuid)
   (:import-from :log4cl #:log-debug #:log-info)
   (:export #:main))
 
@@ -79,6 +80,15 @@
        ,@body)))
 
 (defun main ()
+  (when (not (= 0 (getuid)))
+    (let ((max-user-watches
+	   (parse-integer
+	    (uiop:read-file-string #p"/proc/sys/fs/inotify/max_user_watches"))))
+      (when (< max-user-watches 100000)
+	(format
+	 *error-output*
+	 "fs.inotify.max_user_watches is less than 100,000, you should increase that for a better experience.~%"))))
+
   (with-inotify (inotify)
     (with-ballish-database (db)
       (with-source-indexing (source-index source-queue)
