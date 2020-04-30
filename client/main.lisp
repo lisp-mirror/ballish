@@ -125,7 +125,7 @@
 	    (if count "count(*)" "path")
 	    (if q (format nil "content MATCH ~s" q) "")
 	    (if tags
-		(format nil "~a ~{tags MATCH ~s~^AND ~}"
+		(format nil "~a ~{tags MATCH ~s~^ AND ~}"
 			(if q "AND" "")
 			(split "," tags))
 		""))))
