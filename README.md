@@ -37,4 +37,3 @@ to look at the dependency graph.
 - Offer some systemd service for the daemon + instructions on
   `inotify.max_user_files`.
 - Write an emacs package/vim plugin.
-- Provide .deb/.rpm/.pkgbuild packages.
