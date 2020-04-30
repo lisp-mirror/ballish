@@ -1,0 +1,11 @@
+[Unit]
+Description=Ballish daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ballish-daemon
+Restart=always
+RestartSec=1s
+
+[Install]
+WantedBy=default.target

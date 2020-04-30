@@ -34,6 +34,4 @@ to look at the dependency graph.
 ## Roadmap
 
 - Add search on Git commits.
-- Offer some systemd service for the daemon + instructions on
-  `inotify.max_user_files`.
 - Write an emacs package/vim plugin.
