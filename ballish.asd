@@ -15,3 +15,7 @@
   :build-operation :static-program-op
   :build-pathname "bl"
   :entry-point "ballish/client/main:main")
+
+(defmethod perform :before ((op program-op) (c system))
+  (loop for object in sb-alien::*shared-objects*
+     do (setf (sb-alien::shared-object-dont-save object) t)))
