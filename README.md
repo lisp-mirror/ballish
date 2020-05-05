@@ -33,17 +33,28 @@ If you want to build ballish yourself, you will need:
 - [QuickLisp][3]
 - [pandoc][4]
 
-Clone [wild-package-inferred-system][5] in your
-`~/quicklisp/local-projects/`, and then you can run `make`. The
-`ballish-daemon` and `bl` binaries will appear in your folder.
+For sbcl:
+
+- You need to compile sbcl manually with `sh make.sh --fancy
+  --with-sb-linkable-runtime --with-sb-dynamic-core`.
+- You need to skip version 2.0.4. Before and after are fine.
+
+You also need to clone those in your `~/quicklisp/local-projects/`:
+
+- [wild-package-inferred-system][5]
+- [cffi][6] (unreleased fixes are needed)
+- [cl-inotify][7] (fork to avoid a bad dependency)
+
+At this point, you can run `make`, and the `ballish-daemon` and `bl`
+binaries will appear in your folder.
 
 You will need to run `ballish-daemon` as a daemon (likely as a systemd
-service, see the sample [ballish-daemon.service][6] file) before
+service, see the sample [ballish-daemon.service][8] file) before
 running any `bl` command.
 
 ## License
 
-[GPLv2][7].
+[GPLv2][9].
 
 ## Roadmap
 
@@ -57,5 +68,7 @@ running any `bl` command.
   [3]: https://www.quicklisp.org/beta/
   [4]: https://pandoc.org/
   [5]: https://github.com/privet-kitty/wild-package-inferred-system
-  [6]: ballish-daemon.service
-  [7]: LICENSE
+  [6]: https://github.com/cffi/cffi
+  [7]: https://github.com/ralt/cl-inotify
+  [8]: ballish-daemon.service
+  [9]: LICENSE
