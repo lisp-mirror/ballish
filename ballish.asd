@@ -18,4 +18,6 @@
 
 (defmethod perform :before ((op program-op) (c system))
   (loop for object in sb-alien::*shared-objects*
-     do (setf (sb-alien::shared-object-dont-save object) t)))
+     do (setf (sb-alien::shared-object-dont-save object) t))
+  ;; TODO: figure out why (call-next-method op c) is erroring out?
+  (setf uiop:*image-entry-point* (asdf/system:component-entry-point c)))
