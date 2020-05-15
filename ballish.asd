@@ -10,6 +10,13 @@
 (defsystem "ballish/client"
   :defsystem-depends-on ("wild-package-inferred-system" "cffi-grovel")
   :class "winfer:wild-package-inferred-system"
+  :around-compile (lambda (next)
+                    (proclaim '(optimize
+				(debug 1)
+				(safety 1)
+				(debug 1)
+				(speed 3)))
+                    (funcall next))
   :depends-on ("ballish"
 	       "ballish/client/*")
   :build-operation :static-program-op
