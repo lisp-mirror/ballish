@@ -34,9 +34,10 @@
   ;; Close the non-system foreign libraries as we're using
   ;; :static-program-op to embed them into our binary. The system
   ;; libraries cannot be embedded, though, so we need to keep them.
-  (push (lambda ()
-	  (loop for library in (cffi:list-foreign-libraries)
-	     unless (eq (cffi:foreign-library-type library) :system)
-	     do (cffi:close-foreign-library library)))
-	*image-dump-hook*)
+  (uiop:register-image-dump-hook
+   (lambda ()
+     (loop
+	for library in (cffi:list-foreign-libraries)
+	unless (eq (cffi:foreign-library-type library) :system)
+	do (cffi:close-foreign-library library))))
   (setf uiop:*image-entry-point* (asdf/system:component-entry-point c)))
