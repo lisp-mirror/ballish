@@ -9,10 +9,14 @@
   (uiop:xdg-data-home #p"ballish/" more))
 
 (defun ballish-db-path ()
-  (ballish-path #p"ballish.db"))
+  (let ((path (ballish-path #p"ballish.db")))
+    (ensure-directories-exist path)
+    path))
 
 (defun source-index-path (&rest more)
   (uiop:xdg-data-home #p"ballish/" more))
 
 (defun source-index-db-path ()
-  (source-index-path #p"source.db"))
+  (let ((path (source-index-path #p"source.db")))
+    (ensure-directories-exist path)
+    path))
