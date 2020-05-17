@@ -73,7 +73,7 @@
 
 (defmacro with-ballish-server ((socket) &body body)
   `(with-unix-socket-server (,socket
-			     :path ,(namestring (ballish-daemon-socket-path)))
+			     :path (namestring (ballish-daemon-socket-path)))
      ,@body))
 
 (defun main ()
