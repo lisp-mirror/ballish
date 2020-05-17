@@ -23,7 +23,19 @@ bl: $(wildcard client/*.lisp)
 ballish.1.gz: MANUAL.md
 	pandoc -s -t man $< | gzip -9 > $@
 
-.PHONY: deb rpm pkg
+.PHONY: deb rpm pkg tests client-tests
+
+tests: client-tests
+
+client-tests: $(wildcard tests/unit/client/*.lisp)
+	sbcl \
+		--load ~/quicklisp/setup.lisp \
+		--eval '(setf *debugger-hook* (lambda (c h) (declare (ignore h)) (format t "~A~%" c) (uiop:quit -1)))' \
+		--eval '(push "$(PWD)/" asdf:*central-registry*)' \
+		--eval '(ql:quickload :cffi-grovel)' \
+		--eval '(ql:quickload :ballish/client/tests)' \
+		--eval '(asdf:test-system :ballish/client)' \
+		--quit
 
 deb:
 	fpm -s dir -t deb --depends libsqlite3-0 --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon.service=/lib/systemd/system/

@@ -3,7 +3,6 @@
 set -xe
 
 gem install --no-document fpm
-export HOME=/home/lisp
 git clone https://github.com/sbcl/sbcl.git ~/sbcl
 # sbcl 2.0.4 is buggy for linkable-runtime
 (cd ~/sbcl && git checkout sbcl-2.0.3 && sh make.sh --fancy --with-sb-linkable-runtime --with-sb-dynamic-core && sh install.sh)
