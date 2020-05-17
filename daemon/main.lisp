@@ -140,7 +140,7 @@
       (return-from add-watches)))
 
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
-    (iter (for p in (directory wild-path))
+    (iter (for p in (directory wild-path :resolve-symlinks nil))
 	  (when (pathname-name p)
 	    (send-message source-queue (list action p)))
 
