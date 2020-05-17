@@ -14,7 +14,10 @@
                 #:with-open-database
                 #:execute-to-list
                 #:execute-non-query
-                #:sqlite-constraint-error)
+                #:sqlite-constraint-error
+		#:sqlite-error
+		#:sqlite-error-code
+		#:sqlite-error-message)
   (:import-from :cl-ppcre #:split #:regex-replace-all)
   (:import-from :sb-thread #:make-thread #:join-thread)
   (:import-from :sb-concurrency #:make-mailbox #:receive-message #:send-message)
@@ -109,12 +112,18 @@
 		     (declare (ignore c))
 		     (error 'fatal-error
 			    :message "program interrupted by user"
-			    :code 1)))
+			    ;; 1 is reserved for (fatal)
+			    :code 2)))
 		  (socket-error (lambda (c)
 				  (declare (ignore c))
 				  (error 'fatal-error
 					 :message "ballish-daemon is not started."
-					 :code 2))))
+					 :code 3)))
+		  (sqlite-error (lambda (c)
+				  (when (eql (sqlite-error-code c) :busy)
+				    (error 'fatal-error
+					   :message "please try again later"
+					   :code 4)))))
     (multiple-value-bind (options args)
         (handler-case
             (get-opts)
@@ -172,11 +181,18 @@
             (if count "count(*)" "path")
             (if q (format nil "source MATCH 'content:~a'" q) "")
             (if tags
-                (format nil "~a ~{source MATCH 'tags:~s'~^ AND ~}"
+                (format nil "~a ~{source MATCH 'tags:~a'~^ AND ~}"
                         (if q "AND" "")
                         (split "," tags))
                 ""))))
-      (mapcar #'car (execute-to-list db query)))))
+      (handler-case
+	  (mapcar #'car (execute-to-list db query))
+	(sqlite-error (c)
+	  (if (and (eql (sqlite-error-code c) :error)
+		   (string= (the simple-string (sqlite-error-message c))
+			    "unable to use function MATCH in the requested context"))
+	      (fatal "this sqlite version does not support both query and tags at once")
+	      (error c)))))))
 
 (defun add-folder (folder)
   (with-open-database (db (ballish-db-path) :busy-timeout 1000)
