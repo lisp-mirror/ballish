@@ -174,7 +174,7 @@
       (unwind-protect
            (socket-connect
             socket
-            (namestring (uiop:xdg-runtime-dir #p"ballish/daemon.sock")))
+            (namestring (ballish-daemon-socket-path)))
         (socket-close socket)))))
 
 (defun query-count (q tags)

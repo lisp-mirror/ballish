@@ -72,12 +72,9 @@
 	 (socket-close ,socket)))))
 
 (defmacro with-ballish-server ((socket) &body body)
-  `(progn
-     (ensure-directories-exist (uiop:xdg-runtime-dir #p"ballish/"))
-     (with-unix-socket-server (,socket
-			       :path ,(namestring
-				       (uiop:xdg-runtime-dir #p"ballish/daemon.sock")))
-       ,@body)))
+  `(with-unix-socket-server (,socket
+			     :path ,(namestring (ballish-daemon-socket-path)))
+     ,@body))
 
 (defun main ()
   (when (not (= 0 (getuid)))
