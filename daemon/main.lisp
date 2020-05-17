@@ -135,11 +135,10 @@
 	 (watch inotify path '(:create :delete :delete-self :modify :move)))
 	((equal action :delete)
 	 (unwatch inotify :pathname path)))
-    (osicat-posix:posix-error (e)
-      ;; Ignore. It can be many reasons, and we just don't really
-      ;; care, it means we're skipping.
-      (format *error-output* "Error watching ~a: ~a~%" path e)
-      (return-from add-watches)))
+    (osicat-posix:posix-error ()
+      ;; Ignore. It typically means we're reaching the
+      ;; max_user_watches limit.
+      nil))
 
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
     (iter (for p in (directory wild-path :resolve-symlinks nil))
