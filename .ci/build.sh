@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -xe
+
 gem install --no-document fpm
 export HOME=/home/lisp
 git clone https://github.com/sbcl/sbcl.git ~/sbcl
