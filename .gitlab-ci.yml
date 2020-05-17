@@ -6,7 +6,7 @@ stages:
 functional tests:
   stage: test
   # had to pick one.
-  image: debian:bullseye
+  image: debian:buster
   script:
     - apt-get update -qq
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev

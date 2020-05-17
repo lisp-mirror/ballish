@@ -170,9 +170,9 @@
             nil
             "SELECT ~a FROM source WHERE ~a ~a"
             (if count "count(*)" "path")
-            (if q (format nil "content MATCH ~s" q) "")
+            (if q (format nil "source MATCH 'content:~a'" q) "")
             (if tags
-                (format nil "~a ~{tags MATCH ~s~^ AND ~}"
+                (format nil "~a ~{source MATCH 'tags:~s'~^ AND ~}"
                         (if q "AND" "")
                         (split "," tags))
                 ""))))
