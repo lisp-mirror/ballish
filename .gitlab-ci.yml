@@ -8,6 +8,7 @@ functional tests:
   # had to pick one.
   image: debian:bullseye
   script:
+    - export HOME=/home/lisp
     - apt-get update -qq
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
     - ./.ci/build.sh
@@ -18,6 +19,7 @@ unit tests:
   stage: test
   image: debian:bullseye
   script:
+    - export HOME=/home/lisp
     - apt-get update -qq
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
     - ./.ci/build.sh
@@ -27,6 +29,7 @@ unit tests:
   stage: build
   image: debian:${DIST}
   script:
+    - export HOME=/home/lisp
     - apt-get update -qq
     # git-core: needed to run git clone a bit later
     # pandoc: needed to build the manual
@@ -46,6 +49,7 @@ unit tests:
   stage: build
   image: ubuntu:${DIST}
   script:
+    - export HOME=/home/lisp
     - apt-get update -qq
     # git-core: needed to run git clone a bit later
     # pandoc: needed to build the manual
@@ -65,6 +69,7 @@ unit tests:
   stage: build
   image: fedora:${DIST}
   script:
+    - export HOME=/home/lisp
     - dnf groupinstall -y "Development Tools"
     - dnf install -y git pandoc ruby ruby-devel rubygems rpm-build sbcl curl zlib-devel libffi-devel redhat-rpm-config
     - ./.ci/build.sh
@@ -124,10 +129,11 @@ release:
   dependencies:
     - compile-debian-stretch
     - compile-debian-buster
+    - compile-debian-bullseye
     - compile-ubuntu-18.04
     - compile-ubuntu-19.10
     - compile-ubuntu-20.04
     - compile-fedora-31
     - compile-fedora-32
   script:
-    - gitlab-release ballish_stretch_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_buster_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f31.x86_64.rpm ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f32.x86_64.rpm ballish_ubuntu_18.04_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_19.10_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_20.04_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
+    - gitlab-release ballish_stretch_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_buster_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_bullseye_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f31.x86_64.rpm ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f32.x86_64.rpm ballish_ubuntu_18.04_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_19.10_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_20.04_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
