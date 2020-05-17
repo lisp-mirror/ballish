@@ -3,14 +3,18 @@
 
 (in-package :ballish/tests/unit/client/main)
 
-(uiop:chdir #p"/tmp/")
+(defvar *cwd* (uiop:getcwd))
+(defvar *cwd-str* (namestring *cwd*))
 
 (test normalize-folder
-  (is (string= "/tmp/"
+  (is (string= *cwd-str*
 	       (ballish/client/main::normalize-folder ".")))
 
-  (is (string= "/tmp/"
-	       (ballish/client/main::normalize-folder "/tmp")))
+  (is (string= *cwd-str*
+	       (ballish/client/main::normalize-folder
+		(subseq *cwd-str* 0 (1- (length *cwd-str*))))))
 
-  (is (string= "/tmp/"
-	       (ballish/client/main::normalize-folder "/tmp/../tmp"))))
+  (is (string= *cwd-str*
+	       (ballish/client/main::normalize-folder
+		(concatenate 'string
+			     *cwd-str* "../" (first (last (pathname-directory *cwd*))))))))
