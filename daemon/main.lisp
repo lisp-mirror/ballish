@@ -93,11 +93,13 @@
     (with-ballish-database (db)
       (with-source-indexing (source-index source-queue)
 	(let ((folders (get-folders db)))
-	  (log-info "Adding watches on folders ~a" folders)
+	  (when folders (log-info "Adding watches on folders ~a" folders))
 	  (iter (for folder in folders)
 		(add-watches inotify folder source-queue))
 
-	  (log-debug "Watches added, entering main loop now")
+	  (if folders
+	      (log-info "Watches added, entering main loop now")
+	      (log-info "Entering main loop"))
 
 	  (with-ballish-server (socket)
 	    (main-loop db inotify socket source-index source-queue folders)))))))
