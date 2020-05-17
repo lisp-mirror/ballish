@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -xe
+
+export PATH=../../:$PATH
+
+pids=""
+
+for script in tests/*.sh; do
+    ./"$script" &
+    pids="$pids $!"
+done
+
+for pid in $pids; do
+    wait $pid
+done

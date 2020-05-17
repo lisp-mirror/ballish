@@ -1,6 +1,18 @@
 stages:
+  - test
   - build
   - publish
+
+functional tests:
+  stage: test
+  # had to pick one.
+  image: debian:bullseye
+  script:
+    - apt-get update -qq
+    - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
+    - ./.ci/build.sh
+    # Has to be last.
+    - (cd tests/functional; ./run-tests)
 
 .compile-debian: &compile-debian
   stage: build
@@ -13,17 +25,7 @@ stages:
     # dpkg-dev: needed to build a .deb
     # zlib1g-dev: sbcl dependency
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
-    - gem install --no-document fpm
-    - export HOME=/home/lisp
-    - git clone https://github.com/sbcl/sbcl.git ~/sbcl
-    # sbcl 2.0.4 is buggy for linkable-runtime
-    - (cd ~/sbcl && git checkout sbcl-2.0.3 && sh make.sh --fancy --with-sb-linkable-runtime --with-sb-dynamic-core && sh install.sh)
-    - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit
-    - git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/
-    - git clone --depth=1 https://github.com/cffi/cffi.git ~/quicklisp/local-projects/cffi/
-    # upstream cl-inotify weakly depends on iolib, which is a PITA to bundle
-    - git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/
-    - SBCL_HOME=/usr/local/lib/sbcl make
+    - ./.ci/build.sh
     - make deb VERSION="${CI_BUILD_TAG:-1.0.0}"
     - mv ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_"${DIST}"_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
   artifacts:
@@ -42,17 +44,7 @@ stages:
     # dpkg-dev: needed to build a .deb
     # zlib1g-dev: sbcl dependency
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
-    - gem install --no-document fpm
-    - export HOME=/home/lisp
-    - git clone https://github.com/sbcl/sbcl.git ~/sbcl
-    # sbcl 2.0.4 is buggy for linkable-runtime
-    - (cd ~/sbcl && git checkout sbcl-2.0.3 && sh make.sh --fancy --with-sb-linkable-runtime --with-sb-dynamic-core && sh install.sh)
-    - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit
-    - git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/
-    - git clone --depth=1 https://github.com/cffi/cffi.git ~/quicklisp/local-projects/cffi/
-    # upstream cl-inotify weakly depends on iolib, which is a PITA to bundle
-    - git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/
-    - SBCL_HOME=/usr/local/lib/sbcl make
+    - ./.ci/build.sh
     - make deb VERSION="${CI_BUILD_TAG:-1.0.0}"
     - mv ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_"${DIST}"_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
   artifacts:
@@ -66,16 +58,7 @@ stages:
   script:
     - dnf groupinstall -y "Development Tools"
     - dnf install -y git pandoc ruby ruby-devel rubygems rpm-build sbcl curl zlib-devel libffi-devel redhat-rpm-config
-    - gem install --no-document fpm
-    - export HOME=/home/lisp
-    - git clone https://github.com/sbcl/sbcl.git ~/sbcl
-    - (cd ~/sbcl && git checkout sbcl-2.0.3 && sh make.sh --fancy --with-sb-linkable-runtime --with-sb-dynamic-core && sh install.sh)
-    - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit
-    - git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/
-    - git clone --depth=1 https://github.com/cffi/cffi.git ~/quicklisp/local-projects/cffi/
-    # upstream cl-inotify weakly depends on iolib, which is a PITA to bundle
-    - git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/
-    - SBCL_HOME=/usr/local/lib/sbcl make
+    - ./.ci/build.sh
     - make rpm VERSION="${CI_BUILD_TAG:-1.0.0}"
     - mv ballish-"${CI_BUILD_TAG:-1.0.0}"-1.x86_64.rpm ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f${DIST}.x86_64.rpm
   artifacts:
@@ -91,6 +74,11 @@ compile-debian-stretch:
 compile-debian-buster:
   variables:
     DIST: buster
+  <<: *compile-debian
+
+compile-debian-bullseye:
+  variables:
+    DIST: bullseye
   <<: *compile-debian
 
 compile-ubuntu-18.04:
