@@ -79,8 +79,10 @@
 (defun main ()
   (when (not (= 0 (getuid)))
     (let ((max-user-watches
-	   (parse-integer
-	    (uiop:read-file-string #p"/proc/sys/fs/inotify/max_user_watches"))))
+	   (the
+	    fixnum
+	    (parse-integer
+	     (uiop:read-file-string #p"/proc/sys/fs/inotify/max_user_watches")))))
       (when (< max-user-watches 100000)
 	(format
 	 *error-output*
