@@ -89,9 +89,16 @@
              ,(expand-handler-binds (rest bindings) body))
           `(progn ,@body)))))
 
-(defun realpath (path)
+(defun normalize-folder (path)
   (check-type path string)
-  (uiop:unix-namestring (uiop:merge-pathnames* (uiop:parse-unix-namestring path))))
+  (concatenate
+   'string
+   (string-right-trim
+    '(#\. #\/)
+    (the
+     simple-string
+     (uiop:unix-namestring (uiop:merge-pathnames* (uiop:parse-unix-namestring path)))))
+   "/"))
 
 (defun main ()
   (handler-bind* ((fatal-error (lambda (c)
@@ -146,7 +153,7 @@
 
       (when-option (options :folder)
 	(return-from main
-	  (add-folder (realpath (getf options :folder))))))))
+	  (add-folder (normalize-folder (getf options :folder))))))))
 
 (defun query (q tags &optional (count nil))
   (with-open-database (db (source-index-db-path) :busy-timeout 1000)
