@@ -21,7 +21,7 @@ sleep 1
 
 test $(bl -q foo | wc -l) = 1
 
-test $(bl -t python | wc -l) = 1
+test $(bl -t python | wc -l) = 2
 
 test $(bl -q foo -t python | wc -l) = 1
 
