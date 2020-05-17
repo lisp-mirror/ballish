@@ -102,11 +102,19 @@
 
 (defun main ()
   (handler-bind* ((fatal-error (lambda (c)
-                                (format *error-output* "fatal: ~a~%" (message c))
+                                (format *error-output* "~a" c)
                                 (uiop:quit (code c))))
+		  (sb-sys:interactive-interrupt
+		   (lambda (c)
+		     (declare (ignore c))
+		     (error 'fatal-error
+			    :message "program interrupted by user"
+			    :code 1)))
 		  (socket-error (lambda (c)
 				  (declare (ignore c))
-				  (fatal "ballish-daemon is not started."))))
+				  (error 'fatal-error
+					 :message "ballish-daemon is not started."
+					 :code 2))))
     (multiple-value-bind (options args)
         (handler-case
             (get-opts)
