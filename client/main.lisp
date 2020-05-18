@@ -31,6 +31,9 @@
 
 (in-package :ballish/client/main)
 
+(defvar *debug* nil
+  "Debug mode.")
+
 (define-opts
   (:name :help
    :description "print this help text"
@@ -65,11 +68,16 @@
   (:name :optimize
    :description "optimize the search index storage"
    :short #\o
-   :long "optimize"))
+   :long "optimize")
+  (:name :debug
+   :description "run in debug mode"
+   :short #\d
+   :long "debug"))
 
 (define-condition fatal-error (error)
   ((message :initarg :message :initform "" :reader message)
-   (code :initarg :code :initform 1 :reader code))
+   (code :initarg :code :initform 1 :reader code)
+   (condition :initarg :condition :initform nil :reader fatal-error-condition))
   (:report (lambda (condition stream)
              (format stream "fatal: ~a~%" (message condition)))))
 
@@ -105,6 +113,8 @@
 
 (defun main ()
   (handler-bind* ((fatal-error (lambda (c)
+				 (when (and *debug* (fatal-error-condition c))
+				   (format *error-output* "~a~%" (fatal-error-condition c)))
                                 (format *error-output* "~a" c)
                                 (uiop:quit (code c))))
 		  (sb-sys:interactive-interrupt
@@ -115,15 +125,20 @@
 			    ;; 1 is reserved for (fatal)
 			    :code 2)))
 		  (socket-error (lambda (c)
-				  (declare (ignore c))
 				  (error 'fatal-error
 					 :message "ballish-daemon is not started."
-					 :code 3)))
+					 :code 3
+					 :condition c)))
 		  (sqlite-error (lambda (c)
-				  (when (eql (sqlite-error-code c) :busy)
-				    (error 'fatal-error
-					   :message "please try again later"
-					   :code 4)))))
+				  (if (eql (sqlite-error-code c) :busy)
+				      (error 'fatal-error
+					     :message "please try again later"
+					     :code 4
+					     :condition c)
+				      (error 'fatal-error
+					     :message "unhandled sqlite error"
+					     :code 5
+					     :condition c)))))
     (multiple-value-bind (options args)
         (handler-case
             (get-opts)
@@ -138,6 +153,8 @@
 
       (when args
         (fatal "unknown parameters: ~{~a~^, ~}" args))
+
+      (setf *debug* (getf options :debug))
 
       (when-option (options :help)
         (opts:describe
