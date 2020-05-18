@@ -19,6 +19,8 @@ bl -f fixtures
 
 sleep 1
 
+test $(bl -q trying | wc -l) = 0
+
 test $(bl -q foo | wc -l) = 1
 
 test $(bl -t python | wc -l) = 1
