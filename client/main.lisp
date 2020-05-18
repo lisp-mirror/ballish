@@ -169,13 +169,10 @@
 	    (optimize-fts))))
 
       (when-option (options :count)
-	(if (or (getf options :query)
-		(getf options :tags))
-	    (return-from main
-	      (format t "~{~a~%~}"
-		      (query-count (getf options :query)
-				   (getf options :tags))))
-	    (fatal "cannot count without a query")))
+	(return-from main
+	  (format t "~{~a~%~}"
+		  (query-count (getf options :query)
+			       (getf options :tags)))))
 
       (when (or (getf options :query)
 		(getf options :tags))
@@ -194,8 +191,9 @@
     (let ((query
            (format
             nil
-            "SELECT ~a FROM source WHERE ~a ~a"
+            "SELECT ~a FROM source ~a ~a ~a"
             (if count "count(*)" "path")
+	    (if (or q tags) "WHERE" "")
             (if q (format nil "source MATCH 'content:~a'" q) "")
             (if tags
                 (format nil "~a ~{source MATCH 'tags:~a'~^ AND ~}"

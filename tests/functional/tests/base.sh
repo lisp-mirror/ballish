@@ -26,3 +26,5 @@ test $(bl -q bar | wc -l) = 1
 test $(bl -q baz | wc -l) = 0
 
 test $(bl -q foo -g | wc -l) = 1
+
+test $(bl -c) = 1

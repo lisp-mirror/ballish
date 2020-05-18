@@ -43,7 +43,7 @@ node_modules folders, and all of those is encouraged.
 :   Add a folder to the index.
 
 `--count`, `-c`
-:   Print the number of results for a given query.
+:   Print the number of results. Can accept `--query` and `--tags` as well.
 
 `--grep`, `-g`
 :   Run grep on every result. See GREP.
