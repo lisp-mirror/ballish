@@ -2,15 +2,18 @@
 
 set -xe
 
-export PATH=../../:$PATH
-
-pids=""
+export PATH=$(realpath ../..):$PATH
 
 for script in tests/*.sh; do
-    ./"$script" &
-    pids="$pids $!"
-done
+    tmp=$(mktemp -d)
+    trap "rm -rf $tmp" EXIT
 
-for pid in $pids; do
-    wait $pid
+    export XDG_RUNTIME_DIR="$tmp"/runtime
+    export XDG_DATA_HOME="$tmp"/data
+
+    cp -R fixtures "$tmp"
+    cp -R tests "$tmp"
+
+    echo "Running ${script}..."
+    (cd "$tmp" && ./"$script" "$tmp")
 done

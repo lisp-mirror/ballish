@@ -4,12 +4,6 @@
 
 set -xe
 
-tmp=$(mktemp -d)
-trap "rm -rf $tmp" EXIT
-
-export XDG_RUNTIME_DIR="$tmp"/runtime
-export XDG_DATA_HOME="$tmp"/data
-
 ballish-daemon &
 trap "kill -9 %1" EXIT
 
@@ -17,7 +11,7 @@ sleep 1
 
 bl -f fixtures
 
-sleep 5
+sleep 1
 
 test $(bl -q trying | wc -l) = 0
 

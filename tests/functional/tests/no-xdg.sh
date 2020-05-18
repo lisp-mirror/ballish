@@ -5,10 +5,7 @@
 
 set -xe
 
-tmp=$(mktemp -d)
-trap "rm -rf $tmp" EXIT
-
-export HOME=$tmp
+export HOME=$1
 
 unset XDG_RUNTIME_DIR
 unset XDG_DATA_HOME
