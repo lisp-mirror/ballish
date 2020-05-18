@@ -20,6 +20,6 @@ sleep 1
 
 bl -f fixtures
 
-sleep 1
+sleep 5
 
 test $(bl -q foo | wc -l) = 1
