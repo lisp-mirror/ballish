@@ -1,7 +1,6 @@
 (uiop:define-package :ballish/daemon/source-indexing
     (:use :cl :iterate :ballish/util/*)
   (:import-from :sb-thread #:make-thread #:terminate-thread #:join-thread)
-  (:import-from :sb-concurrency #:receive-message #:make-mailbox)
   (:import-from :sb-posix #:stat #:stat-mtime #:syscall-error #:syscall-errno)
   (:import-from :sb-int #:stream-decoding-error)
   (:import-from :alexandria #:alist-hash-table #:hash-table-keys)
@@ -108,7 +107,7 @@
   "The table definitions for the sqlite tables.")
 
 (defmacro with-source-indexing ((source-index queue) &body body)
-  `(let* ((,queue (make-mailbox))
+  `(let* ((,queue (lparallel.queue:make-queue :fixed-capacity 1000))
 	  (,source-index (make-source-indexing ,queue)))
      (unwind-protect
 	  (progn ,@body)
@@ -144,7 +143,7 @@
 (defun index-loop (index)
   (loop
      (destructuring-bind (action path)
-	 (receive-message (files-queue index))
+	 (lparallel.queue:pop-queue (files-queue index))
        (cond ((equal action :add)
 	      (index-file index path))
 	     ((equal action :delete)

@@ -8,7 +8,7 @@
 				(safety 1)
 				(speed 3)))
                     (funcall next))
-  :depends-on ("ballish/daemon/*")
+  :depends-on ("lparallel" "ballish/daemon/*")
   :build-operation :static-program-op
   :build-pathname "ballish-daemon"
   :entry-point "ballish/daemon/main:main")

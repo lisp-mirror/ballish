@@ -1,6 +1,5 @@
 (uiop:define-package :ballish/daemon/main
     (:use :cl :iterate :ballish/daemon/source-indexing :ballish/util/*)
-  (:import-from :sb-concurrency #:make-mailbox #:send-message #:receive-message)
   (:import-from :sb-thread #:make-thread #:terminate-thread)
   (:import-from :cl-inotify
 		#:with-inotify
@@ -104,7 +103,7 @@
 	    (main-loop db inotify socket source-index source-queue folders)))))))
 
 (defun main-loop (db inotify socket source-index source-queue folders)
-  (let ((queue (make-mailbox)))
+  (let ((queue (lparallel.queue:make-queue)))
     (with-waiting-threads ((wait-for-indexing
 			    :arguments (list source-index)
 			    :name "Main source index wait indexing")
@@ -115,7 +114,7 @@
 			    :arguments (list socket queue)
 			    :name "Main wait client socket"))
       (loop
-	 (let ((message (receive-message queue)))
+	 (let ((message (lparallel.queue:pop-queue queue)))
 	   (log-debug "Received message ~a" message)
 	   (typecase message
 	     (inotify-event
@@ -142,7 +141,7 @@
   (let ((wild-path (merge-pathnames (make-pathname :name :wild :type :wild) path)))
     (iter (for p in (directory wild-path :resolve-symlinks nil))
 	  (when (pathname-name p)
-	    (send-message source-queue (list action p)))
+	    (lparallel.queue:push-queue (list action p) source-queue))
 
 	  (when (and (not (pathname-name p))
 		     (not (member (first (last (pathname-directory p)))
@@ -158,11 +157,11 @@
 
 (defun wait-for-inotify-event (inotify queue)
   (loop
-     (send-message queue (read-event inotify))))
+     (lparallel.queue:push-queue (read-event inotify) queue)))
 
 (defun wait-for-client-socket (socket queue)
   (loop
-     (send-message queue (socket-accept socket))))
+     (lparallel.queue:push-queue (socket-accept socket) queue)))
 
 (defun handle-inotify-event (inotify event source-queue)
   (let* ((mask (inotify-event-mask event))
@@ -184,11 +183,11 @@
 		    (member :delete mask)
 		    (member :delete-self mask)
 		    (member :move-to mask)))
-	   (send-message source-queue (list :add path)))
+	   (lparallel.queue:push-queue (list :add path) source-queue))
 
 	  ((and (not (member :isdir mask))
 		(member :move-from mask))
-	   (send-message source-queue (list :delete path))))))
+	   (lparallel.queue:push-queue (list :delete path) source-queue)))))
 
 (defun get-folders (db)
   (mapcar #'car (execute-to-list db "SELECT path FROM folder")))
