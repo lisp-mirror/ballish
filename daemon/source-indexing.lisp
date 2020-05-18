@@ -131,7 +131,11 @@
 (defun make-source-indexing (files-queue)
   (make-instance 'source-index
 		 :files-queue files-queue
-		 :db (connect (source-index-db-path))))
+		 :db (let ((db (connect (source-index-db-path))))
+		       ;; WAL mode lets the client have more
+		       ;; successful queries.
+		       (execute-non-query db "PRAGMA journal_mode=WAL")
+		       db)))
 
 (defun wait (index)
   (join-thread (thread index)))
