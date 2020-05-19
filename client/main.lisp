@@ -238,9 +238,11 @@
 
     (let ((socket (make-instance 'local-socket :type :stream)))
       (unwind-protect
-           (socket-connect
-            socket
-            (namestring (ballish-daemon-socket-path)))
+           (progn
+	     (socket-connect
+	      socket
+	      (namestring (ballish-daemon-socket-path)))
+	     (socket-send socket "rfsh" nil))
         (socket-close socket)))))
 
 (defun query-count (q tags)
