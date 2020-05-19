@@ -263,7 +263,7 @@
       (error (e) (format *error-output* "~a~%" e)))))
 
 (defun optimize-fts ()
-  (with-open-database (db (source-index-db-path) :busy-timeout 10000)
+  (with-open-database (db (source-index-db-path) :busy-timeout 100000)
     (execute-non-query db "INSERT INTO source(source) VALUES('optimize')")))
 
 (defun show-status ()
