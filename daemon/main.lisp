@@ -22,7 +22,7 @@
 		#:socket-receive
 		#:socket-send)
   (:import-from :sb-posix #:getuid)
-  (:import-from :log4cl #:log-debug #:log-info)
+  (:import-from :log4cl #:log-debug #:log-info #:log-warn)
   (:export #:main))
 
 (in-package :ballish/daemon/main)
@@ -81,7 +81,7 @@
      ,@body))
 
 (defun main ()
-  (log-info "ballish-daemon starting at version ~a~%" *version*)
+  (log-info "ballish-daemon starting at version ~a" *version*)
 
   (when (not (= 0 (getuid)))
     (let ((max-user-watches
@@ -90,9 +90,8 @@
 	    (parse-integer
 	     (uiop:read-file-string #p"/proc/sys/fs/inotify/max_user_watches")))))
       (when (< max-user-watches 100000)
-	(format
-	 *error-output*
-	 "fs.inotify.max_user_watches is less than 100,000, you should increase that for a better experience.~%"))))
+	(log-warn
+	 "fs.inotify.max_user_watches is less than 100,000, you should increase that for a better experience."))))
 
   (with-inotify (inotify)
     (with-ballish-database (db)
