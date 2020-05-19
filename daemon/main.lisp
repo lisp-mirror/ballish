@@ -205,7 +205,10 @@
 	 (switch (order :test #'string=)
 	   ("qcnt"
 	    (let ((queue-count (lparallel.queue:queue-count source-queue)))
-	      (socket-send socket (write-to-string queue-count) nil)
+	      (handler-case
+		  (socket-send socket (write-to-string queue-count) nil)
+		(socket-error ()
+		  nil))
 	      nil))
 	   ("rfsh"
 	    (let* ((new-folders (get-folders db))
