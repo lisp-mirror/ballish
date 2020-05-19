@@ -26,7 +26,10 @@
                 #:local-socket
                 #:socket-connect
                 #:socket-close
-                #:socket-error)
+                #:socket-error
+		#:socket-send
+		#:socket-receive)
+  (:import-from :sb-posix #:stat #:stat-size)
   (:export #:main))
 
 (in-package :ballish/client/main)
@@ -72,7 +75,11 @@
   (:name :debug
    :description "run in debug mode"
    :short #\d
-   :long "debug"))
+   :long "debug")
+  (:name :status
+   :description "show indexing status"
+   :short #\s
+   :long "status"))
 
 (define-condition fatal-error (error)
   ((message :initarg :message :initform "" :reader message)
@@ -184,7 +191,11 @@
 
       (when-option (options :folder)
 	(return-from main
-	  (add-folder (normalize-folder (getf options :folder))))))))
+	  (add-folder (normalize-folder (getf options :folder)))))
+
+      (when-option (options :status)
+	(return-from main
+	  (show-status))))))
 
 (defun query (q tags &optional (count nil))
   (with-open-database (db (source-index-db-path) :busy-timeout 1000)
@@ -243,3 +254,45 @@
 (defun optimize-fts ()
   (with-open-database (db (source-index-db-path) :busy-timeout 10000)
     (execute-non-query db "INSERT INTO source(source) VALUES('optimize')")))
+
+(defun show-status ()
+  (let* ((socket (test-server))
+	 (index-size (index-size))
+	 (queue-count (when socket (queue-count socket)))
+	 (folders-list (list-folders)))
+    (format t "server status: ~a~%index size on disk: ~$M~%~aindexed folers:~%~a~%"
+	    (if socket "up" "down")
+	    index-size
+	    (if socket
+		(format nil "in-flight files to index: ~a~%" queue-count)
+		"")
+	    (format nil "~{  - ~a~^~%~}" folders-list))))
+
+(defun test-server ()
+  ;; fun fact: this one returns an open socket.
+  (let ((socket (make-instance 'local-socket :type :stream)))
+    (handler-case
+	(progn
+	  (socket-connect
+	   socket
+	   (namestring (ballish-daemon-socket-path)))
+	  socket)
+      (socket-error ()
+	nil))))
+
+(defun index-size ()
+  (/ (stat-size (stat (source-index-db-path))) 1024.0 1024.0))
+
+(defun queue-count (socket)
+  ;; fun fact: this one closes the socket.
+  (unwind-protect
+       (progn
+	 (socket-send socket "qcnt" nil)
+	 (multiple-value-bind (response length)
+	     (socket-receive socket nil 32)
+	   (parse-integer (subseq (the simple-string response) 0 length))))
+    (socket-close socket)))
+
+(defun list-folders ()
+  (with-open-database (db (ballish-db-path) :busy-timeout 1000)
+    (mapcar #'car (execute-to-list db "SELECT path FROM folder"))))

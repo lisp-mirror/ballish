@@ -51,6 +51,12 @@ node_modules folders, and all of those is encouraged.
 `--optimize`, `-o`
 :   Optimize the index storage.
 
+`--debug`, `-d`
+:   Run in debug mode.
+
+`--status`, `-s`
+:   Print the indexing status.
+
 # GREP
 
 By default, ballish results will be the files in which the results

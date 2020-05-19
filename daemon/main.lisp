@@ -1,5 +1,6 @@
 (uiop:define-package :ballish/daemon/main
     (:use :cl :iterate :ballish/daemon/source-indexing :ballish/util/*)
+  (:import-from :alexandria #:switch)
   (:import-from :sb-thread #:make-thread #:terminate-thread)
   (:import-from :cl-inotify
 		#:with-inotify
@@ -17,7 +18,9 @@
 		#:socket-bind
 		#:socket-listen
 		#:socket-close
-		#:socket-accept)
+		#:socket-accept
+		#:socket-receive
+		#:socket-send)
   (:import-from :sb-posix #:getuid)
   (:import-from :log4cl #:log-debug #:log-info)
   (:export #:main))
@@ -121,8 +124,9 @@
 	      (handle-inotify-event inotify message source-queue))
 
 	     (socket
-	      (setf folders
-		    (handle-client-socket message db inotify source-queue folders)))))))))
+	      (let ((new-folders
+		     (handle-client-socket message db inotify source-queue folders)))
+		(when new-folders (setf folders new-folders))))))))))
 
 (defun add-watches (inotify path source-queue &optional (action :add))
   ;; TODO: don't watch on read-only files (either fs or permission)
@@ -194,14 +198,21 @@
 
 (defun handle-client-socket (socket db inotify source-queue folders)
   (unwind-protect
-       (let* ((new-folders (get-folders db))
-	      (folders-to-watch (set-difference new-folders folders :test #'equal))
-	      (folders-to-delete (set-difference folders new-folders :test #'equal)))
-	 (iter (for folder in folders-to-watch)
-	       (add-watches inotify folder source-queue))
+       (let ((order (the simple-string (socket-receive socket nil 4))))
+	 (switch (order :test #'string=)
+	   ("qcnt"
+	    (let ((queue-count (lparallel.queue:queue-count source-queue)))
+	      (socket-send socket (write-to-string queue-count) nil)
+	      nil))
+	   ("rfsh"
+	    (let* ((new-folders (get-folders db))
+		   (folders-to-watch (set-difference new-folders folders :test #'equal))
+		   (folders-to-delete (set-difference folders new-folders :test #'equal)))
+	      (iter (for folder in folders-to-watch)
+		    (add-watches inotify folder source-queue))
 
-	 (iter (for folder in folders-to-delete)
-	       (remove-watches inotify folder source-queue))
+	      (iter (for folder in folders-to-delete)
+		    (remove-watches inotify folder source-queue))
 
-	 new-folders)
+	      new-folders))))
     (socket-close socket)))
