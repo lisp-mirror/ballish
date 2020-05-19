@@ -27,6 +27,8 @@
 
 (in-package :ballish/daemon/main)
 
+(defvar *version* (uiop:getenv "VERSION"))
+
 (defvar *table-definitions*
   '("CREATE TABLE IF NOT EXISTS folder(
          path TEXT PRIMARY KEY
@@ -79,6 +81,8 @@
      ,@body))
 
 (defun main ()
+  (log-info "ballish-daemon starting at version ~a~%" *version*)
+
   (when (not (= 0 (getuid)))
     (let ((max-user-watches
 	   (the

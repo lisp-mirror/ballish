@@ -57,6 +57,9 @@ node_modules folders, and all of those is encouraged.
 `--status`, `-s`
 :   Print the indexing status.
 
+`--version`, `-v`
+:   Print the version.
+
 # GREP
 
 By default, ballish results will be the files in which the results

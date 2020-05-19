@@ -34,6 +34,8 @@
 
 (in-package :ballish/client/main)
 
+(defvar *version* (uiop:getenv "VERSION"))
+
 (defvar *debug* nil
   "Debug mode.")
 
@@ -79,7 +81,11 @@
   (:name :status
    :description "show indexing status"
    :short #\s
-   :long "status"))
+   :long "status")
+  (:name :version
+   :description "print version"
+   :short #\v
+   :long "version"))
 
 (define-condition fatal-error (error)
   ((message :initarg :message :initform "" :reader message)
@@ -162,6 +168,9 @@
         (fatal "unknown parameters: ~{~a~^, ~}" args))
 
       (setf *debug* (getf options :debug))
+
+      (when-option (options :version)
+	(return-from main (format t "version: ~a~%" *version*)))
 
       (when-option (options :help)
         (opts:describe

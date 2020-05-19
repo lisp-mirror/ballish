@@ -29,6 +29,7 @@ unit tests:
   stage: build
   image: debian:${DIST}
   script:
+    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - export HOME=/home/lisp
     - apt-get update -qq
     # git-core: needed to run git clone a bit later
@@ -49,6 +50,7 @@ unit tests:
   stage: build
   image: ubuntu:${DIST}
   script:
+    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - export HOME=/home/lisp
     - apt-get update -qq
     # git-core: needed to run git clone a bit later
@@ -69,6 +71,7 @@ unit tests:
   stage: build
   image: fedora:${DIST}
   script:
+    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - export HOME=/home/lisp
     - dnf groupinstall -y "Development Tools"
     - dnf install -y git pandoc ruby ruby-devel rubygems rpm-build sbcl curl zlib-devel libffi-devel redhat-rpm-config
