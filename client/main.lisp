@@ -275,7 +275,10 @@
 	    (if socket "up" "down")
 	    index-size
 	    (if socket
-		(format nil "in-flight files to index: ~a~%" queue-count)
+		(format nil "in-flight files to index: ~a~%"
+			(if (eql queue-count :busy)
+			    "more than 1000"
+			    queue-count))
 		"")
 	    (format nil "~{  - ~a~^~%~}" folders-list))))
 
@@ -298,10 +301,15 @@
   ;; fun fact: this one closes the socket.
   (unwind-protect
        (progn
-	 (socket-send socket "qcnt" nil)
-	 (multiple-value-bind (response length)
-	     (socket-receive socket nil 32)
-	   (parse-integer (subseq (the simple-string response) 0 length))))
+	 (socket-send socket "qcnt" nil )
+	 (let ((recv-thread
+		(make-thread
+		 (lambda (socket)
+		   (multiple-value-bind (response length)
+		       (socket-receive socket nil 32)
+		     (parse-integer (subseq (the simple-string response) 0 length))))
+		 :arguments (list socket))))
+	   (join-thread recv-thread :default :busy :timeout 1)))
     (socket-close socket)))
 
 (defun list-folders ()
