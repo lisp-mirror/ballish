@@ -88,7 +88,7 @@
 (defvar *table-definitions*
   '("CREATE VIRTUAL TABLE IF NOT EXISTS source
      USING fts5(
-         path UNINDEXED,
+         path,
          content,
          tags
      )"

@@ -5,7 +5,9 @@
 
 set -xe
 
-export HOME=$1
+. common.sh
+
+export HOME=$tmp
 
 unset XDG_RUNTIME_DIR
 unset XDG_DATA_HOME
@@ -17,6 +19,6 @@ sleep 1
 
 bl -f fixtures
 
-sleep 5
+sleep 1
 
-test $(bl -q foo | wc -l) = 1
+test $(bl -q foo | wc -l) = 2

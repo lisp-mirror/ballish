@@ -3,6 +3,9 @@
 # Test that big files are not indexed.
 
 set -e
+
+. common.sh
+
 set +x
 
 line="I am trying to be at least to 40 characters"

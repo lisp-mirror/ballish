@@ -4,6 +4,8 @@
 
 set -xe
 
+. common.sh
+
 ballish-daemon &
 trap "kill -9 %1" EXIT
 
@@ -15,16 +17,20 @@ sleep 1
 
 test $(bl -q trying | wc -l) = 0
 
-test $(bl -q foo | wc -l) = 1
+test $(bl -q foo | wc -l) = 2
 
-test $(bl -t python | wc -l) = 1
+test $(bl -t python | wc -l) = 3
 
-test $(bl -q foo -t python | wc -l) = 1
+test $(bl -q foo -t python | wc -l) = 2
 
 test $(bl -q bar | wc -l) = 1
 
 test $(bl -q baz | wc -l) = 0
 
-test $(bl -q foo -g | wc -l) = 1
+test $(bl -q foo -g | wc -l) = 3
 
-test $(bl -c) = 1
+test $(bl -c) = 3
+
+(cd fixtures/subfolder && test $(bl -q foo -r | wc -l) = 1)
+
+test $(bl -q foo -l fixtures/subfolder | wc -l) = 1
