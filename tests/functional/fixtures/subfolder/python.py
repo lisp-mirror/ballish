@@ -3,3 +3,5 @@ def toto():
 
 foo()
 foo()
+
+qux()

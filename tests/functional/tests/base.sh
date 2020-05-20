@@ -31,6 +31,20 @@ test $(bl -q foo -g | wc -l) = 3
 
 test $(bl -c) = 3
 
-(cd fixtures/subfolder && test $(bl -q foo -r | wc -l) = 1)
+(cd fixtures/subfolder && test $(bl -q qux -r | wc -l) = 2)
 
-test $(bl -q foo -l fixtures/subfolder | wc -l) = 1
+test $(bl -q qux -l fixtures/subfolder | wc -l) = 2
+
+set +e
+bl -q foo -r
+code=$?
+set -e
+
+test $code = 6
+
+set +e
+bl -r
+code=$?
+set -e
+
+test $code = 7

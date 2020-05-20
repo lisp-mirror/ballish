@@ -104,7 +104,7 @@
     (return-from searched-folder (getf options :localized)))
   (when-option (options :repository)
     (return-from searched-folder
-      (normalize-folder (namestring (find-repository-toplevel (uiop:getcwd)))))))
+      (namestring (find-repository-toplevel (uiop:getcwd))))))
 
 (define-opts
   (:name :help
@@ -236,6 +236,7 @@
 	(return-from main
 	  (let ((results (query (getf options :query)
 				(getf options :tags)
+				nil
 				(searched-folder options))))
 	    (if (getf options :grep)
 		(grep (getf options :query) results)
@@ -247,7 +248,13 @@
 
       (when-option (options :status)
 	(return-from main
-	  (show-status))))))
+	  (show-status)))
+
+      (when (or (getf options :repository)
+		(getf options :localized))
+	(error 'fatal-error
+	       :message "--repository and --localized need to be run with a query"
+	       :code 7)))))
 
 (defun query (q tags &optional (count nil) (path nil))
   (with-open-database (db (source-index-db-path) :busy-timeout 1000)
@@ -265,7 +272,10 @@
                 "")
 	    (if path
 		(format nil "AND path MATCH 'path:^~a'"
-			(format nil "~{~a~^+~}" (rest (split "/" path))))
+			(regex-replace-all
+			 "\\."
+			 (format nil "~{~a~^+~}" (rest (split "/" path)))
+			 "+"))
 		""))))
       (handler-case
 	  (mapcar #'car (execute-to-list db query))
