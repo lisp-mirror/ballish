@@ -27,6 +27,16 @@ See the [manual][0].
 You can find the latest .rpm (Red Hat, CentOS, Fedora), .deb (Ubuntu,
 Debian) or .pkg.tar.xz (Arch) on the [releases page][1].
 
+Once installed, you should start the systemd service:
+
+```bash
+sudo systemctl enable --now ballish-daemon@"$USER"
+```
+
+(Or replace `$USER` with your username.)
+
+## Hacking
+
 If you want to build ballish yourself, you will need:
 
 - [sbcl][2]
@@ -58,6 +68,7 @@ running any `bl` command.
 
 ## Roadmap
 
+- Remove a folder.
 - Add search on Git commits.
 - Write an emacs package/vim plugin.
 

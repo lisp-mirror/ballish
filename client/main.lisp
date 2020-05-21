@@ -257,6 +257,10 @@
 	       :code 7)))))
 
 (defun query (q tags &optional (count nil) (path nil))
+  (check-type q string)
+  (assert (every #'stringp tags))
+  (check-type count (or null fixnum))
+  (check-type path (or null string))
   (with-open-database (db (source-index-db-path) :busy-timeout 1000)
     (let ((query
            (format

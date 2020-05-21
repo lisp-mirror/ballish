@@ -38,10 +38,10 @@ client-tests: $(wildcard tests/unit/client/*.lisp)
 		--quit
 
 deb:
-	fpm -s dir -t deb --depends libsqlite3-0 --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon.service=/lib/systemd/system/
+	fpm -s dir -t deb --depends libsqlite3-0 --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/
 
 rpm:
-	fpm -s dir -t rpm --depends sqlite-devel --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon.service=/lib/systemd/system/
+	fpm -s dir -t rpm --depends sqlite-devel --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/
 
 pkg:
-	fpm -s dir -t pacman --depends sqlite --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon.service=/lib/systemd/system/
+	fpm -s dir -t pacman --depends sqlite --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/

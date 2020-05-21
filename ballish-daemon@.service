@@ -2,6 +2,7 @@
 Description=Ballish daemon
 
 [Service]
+User=%I
 Type=simple
 ExecStart=/usr/bin/ballish-daemon
 Restart=always

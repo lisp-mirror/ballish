@@ -48,6 +48,12 @@ node_modules folders, and all of those is encouraged.
 `--grep`, `-g`
 :   Run grep on every result. See GREP.
 
+`--repository`, `-r`
+:   Run the search in the current folder's repository.
+
+`--localized` *FOLDER*, `-l` *FOLDER*
+:   Run the search in the specified folder.
+
 `--optimize`, `-o`
 :   Optimize the index storage.
 
@@ -59,6 +65,9 @@ node_modules folders, and all of those is encouraged.
 
 `--version`, `-v`
 :   Print the version.
+
+Note: `--repository` and `--localized` do not make the search
+faster. They only exist to help narrow down the list of results.
 
 # GREP
 
