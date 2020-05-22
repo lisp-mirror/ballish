@@ -193,7 +193,7 @@
 					     :code 5
 					     :condition c)))))
     (multiple-value-bind (options args)
-        (restart-case
+        (handler-case
             (get-opts)
           (unknown-option (e)
             (fatal "~s option is unknown" (option e)))
@@ -277,14 +277,7 @@
 			 (format nil "~{~a~^+~}" (rest (split "/" path)))
 			 "+"))
 		""))))
-      (handler-case
-	  (mapcar #'car (execute-to-list db query))
-	(sqlite-error (c)
-	  (if (and (eql (sqlite-error-code c) :error)
-		   (string= (the simple-string (sqlite-error-message c))
-			    "unable to use function MATCH in the requested context"))
-	      (fatal "this sqlite version does not support both query and tags at once")
-	      (error c)))))))
+      (mapcar #'car (execute-to-list db query)))))
 
 (defun add-folder (folder)
   (with-open-database (db (ballish-db-path) :busy-timeout 1000)
