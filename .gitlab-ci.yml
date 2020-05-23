@@ -1,29 +1,6 @@
 stages:
-  - test
   - build
   - publish
-
-functional tests:
-  stage: test
-  # had to pick one.
-  image: debian:bullseye
-  script:
-    - export HOME=/home/lisp
-    - apt-get update -qq
-    - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
-    - ./.ci/build.sh
-    # Has to be last.
-    - (cd tests/functional; ./run-tests)
-
-unit tests:
-  stage: test
-  image: debian:bullseye
-  script:
-    - export HOME=/home/lisp
-    - apt-get update -qq
-    - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
-    - ./.ci/build.sh
-    - CI=1 make tests
 
 .compile-debian: &compile-debian
   stage: build
@@ -32,11 +9,6 @@ unit tests:
     - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - export HOME=/home/lisp
     - apt-get update -qq
-    # git-core: needed to run git clone a bit later
-    # pandoc: needed to build the manual
-    # ruby/ruby-dev/rubygems/build-essential: needed to install fpm
-    # dpkg-dev: needed to build a .deb
-    # zlib1g-dev: sbcl dependency
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
     - ./.ci/build.sh
     - make deb VERSION="${CI_BUILD_TAG:-1.0.0}"
@@ -53,11 +25,6 @@ unit tests:
     - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - export HOME=/home/lisp
     - apt-get update -qq
-    # git-core: needed to run git clone a bit later
-    # pandoc: needed to build the manual
-    # ruby/ruby-dev/rubygems/build-essential: needed to install fpm
-    # dpkg-dev: needed to build a .deb
-    # zlib1g-dev: sbcl dependency
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
     - ./.ci/build.sh
     - make deb VERSION="${CI_BUILD_TAG:-1.0.0}"
