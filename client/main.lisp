@@ -35,7 +35,7 @@
 
 (in-package :ballish/client/main)
 
-(uiop:register-image-dump-hook #'before-dump-hook)
+(uiop:register-image-dump-hook (before-dump-hook 'sqlite-ffi::sqlite3-lib))
 
 (defvar *version* (uiop:getenv "VERSION"))
 
