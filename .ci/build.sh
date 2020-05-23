@@ -19,3 +19,9 @@ git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-pro
 SBCL_HOME=/usr/local/lib/sbcl make
 
 rm -rf ~/.cache/common-lisp
+
+echo "Running unit tests..."
+CI=1 make tests
+
+echo "Running functional tests..."
+(cd tests/functional; ./run-tests)
