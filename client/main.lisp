@@ -35,6 +35,8 @@
 
 (in-package :ballish/client/main)
 
+(uiop:register-image-dump-hook #'before-dump-hook)
+
 (defvar *version* (uiop:getenv "VERSION"))
 
 (defvar *debug* nil

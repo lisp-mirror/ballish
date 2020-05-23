@@ -17,3 +17,5 @@ git clone --depth=1 --branch pr/fix-cflags https://github.com/ralt/cffi.git ~/qu
 # upstream cl-inotify weakly depends on iolib, which is a PITA to bundle
 git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/
 SBCL_HOME=/usr/local/lib/sbcl make
+
+rm -rf ~/.cache/common-lisp
