@@ -48,3 +48,6 @@ code=$?
 set -e
 
 test $code = 7
+
+# we don't have 'set -o pipefail' so the command succeeds.
+test $(bl -q 2>&1 | wc -l) = 1
