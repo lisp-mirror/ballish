@@ -15,6 +15,7 @@
   (:import-from :sb-bsd-sockets
 		#:socket
 		#:local-socket
+		#:socket-error
 		#:socket-bind
 		#:socket-listen
 		#:socket-close
