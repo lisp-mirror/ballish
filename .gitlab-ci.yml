@@ -6,8 +6,6 @@ stages:
   stage: build
   image: debian:${DIST}
   script:
-    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
-    - export HOME=/home/lisp
     - apt-get update -qq
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
     - ./.ci/build.sh
@@ -22,8 +20,6 @@ stages:
   stage: build
   image: ubuntu:${DIST}
   script:
-    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
-    - export HOME=/home/lisp
     - apt-get update -qq
     - apt-get install -y git-core pandoc ruby ruby-dev rubygems build-essential dpkg-dev sbcl curl zlib1g-dev
     - ./.ci/build.sh
@@ -38,8 +34,6 @@ stages:
   stage: build
   image: fedora:${DIST}
   script:
-    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
-    - export HOME=/home/lisp
     - dnf groupinstall -y "Development Tools"
     - dnf install -y git pandoc ruby ruby-devel rubygems rpm-build sbcl curl zlib-devel libffi-devel redhat-rpm-config
     - ./.ci/build.sh

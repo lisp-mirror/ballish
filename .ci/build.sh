@@ -2,6 +2,9 @@
 
 set -xe
 
+export VERSION="${CI_BUILD_TAG:-1.0.0}"
+export HOME=/home/lisp
+
 gem install --no-document fpm
 git clone https://github.com/sbcl/sbcl.git ~/sbcl
 # sbcl 2.0.4 is buggy for linkable-runtime
@@ -18,10 +21,11 @@ git clone --depth=1 --branch pr/fix-cflags https://github.com/ralt/cffi.git ~/qu
 git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/
 SBCL_HOME=/usr/local/lib/sbcl make
 
-rm -rf ~/.cache/common-lisp
-
 echo "Running unit tests..."
 CI=1 make tests
+
+# We need to do this after "make tests"
+rm -rf ~/.cache/common-lisp
 
 echo "Running functional tests..."
 (cd tests/functional; ./run-tests)
