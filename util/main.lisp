@@ -48,6 +48,6 @@
       ;;     close the c-file "foreign library"
       (dolist (lib (cffi:list-foreign-libraries))
 	(when (or
-	       (search "BALLISH_SQLITE3.SO" (symbol-name (cffi:foreign-library-name lib)))
+	       (search "BALLISH__SQLITE3.SO" (symbol-name (cffi:foreign-library-name lib)))
 	       (eql (cffi:foreign-library-name lib) sym))
 	  (cffi:close-foreign-library lib))))))
