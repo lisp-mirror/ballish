@@ -19,10 +19,19 @@ git clone --depth=1 --branch pr/fix-cflags https://github.com/ralt/cffi.git ~/qu
 #git clone --depth=1 https://github.com/cffi/cffi.git ~/quicklisp/local-projects/cffi/
 # upstream cl-inotify weakly depends on iolib, which is a PITA to bundle
 git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/
-SBCL_HOME=/usr/local/lib/sbcl make
+
+set +e
+SBCL_HOME=/usr/local/lib/sbcl make &> sbcl-build.log
+code=$?
+set -e
+test $code = 0 || (cat sbcl-build.log && exit 1)
 
 echo "Running unit tests..."
-CI=1 make tests
+set +e
+CI=1 make tests &> make-tests.log
+code=$?
+set -e
+test $code = 0 || (cat make-tests.log && exit 1)
 
 # We need to do this after "make tests"
 rm -rf ~/.cache/common-lisp
