@@ -98,20 +98,20 @@
   (with-inotify (inotify)
     (with-ballish-database (db)
       (with-source-indexing (source-index source-queue)
-	(let ((folders (get-folders db)))
-	  (when folders (log-info "Adding watches on folders ~a" folders))
-	  (iter (for folder in folders)
-		(add-watches inotify folder source-queue))
+	(with-ballish-server (socket)
+	  (main-loop db inotify socket source-index source-queue))))))
 
-	  (if folders
-	      (log-info "Watches added, entering main loop now")
-	      (log-info "Entering main loop"))
+(defun main-loop (db inotify socket source-index source-queue)
+  (let ((folders (get-folders db))
+	(queue (lparallel.queue:make-queue)))
+    (when folders (log-info "Adding watches on folders ~a" folders))
+    (iter (for folder in folders)
+	  (add-watches inotify folder source-queue))
 
-	  (with-ballish-server (socket)
-	    (main-loop db inotify socket source-index source-queue folders)))))))
+    (if folders
+	(log-info "Watches added, entering main loop now")
+	(log-info "Entering main loop"))
 
-(defun main-loop (db inotify socket source-index source-queue folders)
-  (let ((queue (lparallel.queue:make-queue)))
     (with-waiting-threads ((wait-for-indexing
 			    :arguments (list source-index)
 			    :name "Main source index wait indexing")
