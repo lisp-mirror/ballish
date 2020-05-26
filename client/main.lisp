@@ -16,9 +16,9 @@
                 #:execute-to-list
                 #:execute-non-query
                 #:sqlite-constraint-error
-		#:sqlite-error
-		#:sqlite-error-code
-		#:sqlite-error-message)
+                #:sqlite-error
+                #:sqlite-error-code
+                #:sqlite-error-message)
   (:import-from :cl-ppcre #:split #:regex-replace-all)
   (:import-from :sb-thread #:make-thread #:join-thread)
   (:import-from :sb-concurrency #:make-mailbox #:receive-message #:send-message)
@@ -28,8 +28,8 @@
                 #:socket-connect
                 #:socket-close
                 #:socket-error
-		#:socket-send
-		#:socket-receive)
+                #:socket-send
+                #:socket-receive)
   (:import-from :sb-posix #:stat #:stat-size #:syscall-error)
   (:export #:main))
 
@@ -85,19 +85,19 @@
 (defun find-repository-toplevel (folder)
   (when (= (length (pathname-directory folder)) 1)
     (error 'fatal-error
-	   :message "unable to find the root folder of the repository"
-	   :code 6))
+           :message "unable to find the root folder of the repository"
+           :code 6))
 
   (dolist (path (directory (make-pathname :directory (pathname-directory folder)
-					  :name :wild :type :wild)))
+                                          :name :wild :type :wild)))
     (let ((name (pathname-name path)))
       (if name
-	  (when (member name *repositories-toplevel-markers* :test #'string=)
-	    (return-from find-repository-toplevel folder))
-	  (if (member (lastcar (pathname-directory path))
-		      *repositories-toplevel-markers*
-		      :test #'string=)
-	      (return-from find-repository-toplevel folder)))))
+          (when (member name *repositories-toplevel-markers* :test #'string=)
+            (return-from find-repository-toplevel folder))
+          (if (member (lastcar (pathname-directory path))
+                      *repositories-toplevel-markers*
+                      :test #'string=)
+              (return-from find-repository-toplevel folder)))))
 
   (find-repository-toplevel (make-pathname :directory (butlast (pathname-directory folder)))))
 
@@ -167,33 +167,38 @@
    :long "repository"))
 
 (defun main ()
-  (handler-bind* ((fatal-error (lambda (c)
-				 (when (and *debug* (fatal-error-condition c))
-				   (format *error-output* "~a~%" (fatal-error-condition c)))
+  (handler-bind* ((error (lambda (c)
+                           (when *debug*
+                             (format *error-output* "~a~%" c))
+                           (format *error-output* "fatal: unhandled error~%")
+                           (uiop:quit -1)))
+                  (fatal-error (lambda (c)
+                                 (when (and *debug* (fatal-error-condition c))
+                                   (format *error-output* "~a~%" (fatal-error-condition c)))
                                 (format *error-output* "~a" c)
                                 (uiop:quit (code c))))
-		  (sb-sys:interactive-interrupt
-		   (lambda (c)
-		     (declare (ignore c))
-		     (error 'fatal-error
-			    :message "program interrupted by user"
-			    ;; 1 is reserved for (fatal)
-			    :code 2)))
-		  (socket-error (lambda (c)
-				  (error 'fatal-error
-					 :message "ballish-daemon is not started."
-					 :code 3
-					 :condition c)))
-		  (sqlite-error (lambda (c)
-				  (if (eql (sqlite-error-code c) :busy)
-				      (error 'fatal-error
-					     :message "please try again later"
-					     :code 4
-					     :condition c)
-				      (error 'fatal-error
-					     :message "unhandled sqlite error"
-					     :code 5
-					     :condition c)))))
+                  (sb-sys:interactive-interrupt
+                   (lambda (c)
+                     (declare (ignore c))
+                     (error 'fatal-error
+                            :message "program interrupted by user"
+                            ;; 1 is reserved for (fatal)
+                            :code 2)))
+                  (socket-error (lambda (c)
+                                  (error 'fatal-error
+                                         :message "ballish-daemon is not started."
+                                         :code 3
+                                         :condition c)))
+                  (sqlite-error (lambda (c)
+                                  (if (eql (sqlite-error-code c) :busy)
+                                      (error 'fatal-error
+                                             :message "please try again later"
+                                             :code 4
+                                             :condition c)
+                                      (error 'fatal-error
+                                             :message "unhandled sqlite error"
+                                             :code 5
+                                             :condition c)))))
     (multiple-value-bind (options args)
         (handler-case
             (get-opts)
@@ -212,7 +217,7 @@
       (setf *debug* (getf options :debug))
 
       (when-option (options :version)
-	(return-from main (format t "version: ~a~%" *version*)))
+        (return-from main (format t "version: ~a~%" *version*)))
 
       (when-option (options :help)
         (opts:describe
@@ -221,42 +226,42 @@
         (uiop:quit 0))
 
       (when-option (options :optimize)
-	(return-from main
-	  (progn
-	    (format t "Optimizing storage...~%")
-	    (optimize-fts))))
+        (return-from main
+          (progn
+            (format t "Optimizing storage...~%")
+            (optimize-fts))))
 
       (when-option (options :count)
-	(return-from main
-	  (format t "~{~a~%~}"
-		  (query-count (getf options :query)
-			       (getf options :tags)
-			       (searched-folder options)))))
+        (return-from main
+          (format t "~{~a~%~}"
+                  (query-count (getf options :query)
+                               (getf options :tags)
+                               (searched-folder options)))))
 
       (when (or (getf options :query)
-		(getf options :tags))
-	(return-from main
-	  (let ((results (query (getf options :query)
-				(getf options :tags)
-				nil
-				(searched-folder options))))
-	    (if (getf options :grep)
-		(grep (getf options :query) results)
-		(format t "~{~a~%~}" results)))))
+                (getf options :tags))
+        (return-from main
+          (let ((results (query (getf options :query)
+                                (getf options :tags)
+                                nil
+                                (searched-folder options))))
+            (if (getf options :grep)
+                (grep (getf options :query) results)
+                (format t "~{~a~%~}" results)))))
 
       (when-option (options :folder)
-	(return-from main
-	  (add-folder (getf options :folder))))
+        (return-from main
+          (add-folder (getf options :folder))))
 
       (when-option (options :status)
-	(return-from main
-	  (show-status)))
+        (return-from main
+          (show-status)))
 
       (when (or (getf options :repository)
-		(getf options :localized))
-	(error 'fatal-error
-	       :message "--repository and --localized need to be run with a query"
-	       :code 7)))))
+                (getf options :localized))
+        (error 'fatal-error
+               :message "--repository and --localized need to be run with a query"
+               :code 7)))))
 
 (defun query (q tags &optional (count nil) (path nil))
   (with-open-database (db (source-index-db-path) :busy-timeout 1000)
@@ -265,20 +270,20 @@
             nil
             "SELECT ~a FROM source ~a ~a ~a ~a"
             (if count "count(*)" "path")
-	    (if (or q tags) "WHERE" "")
+            (if (or q tags) "WHERE" "")
             (if q (format nil "source MATCH 'content:~a'" q) "")
             (if tags
                 (format nil "~a ~{source MATCH 'tags:~a'~^ AND ~}"
                         (if q "AND" "")
                         (split "," tags))
                 "")
-	    (if path
-		(format nil "AND path MATCH 'path:^~a'"
-			(regex-replace-all
-			 "\\."
-			 (format nil "~{~a~^+~}" (rest (split "/" path)))
-			 "+"))
-		""))))
+            (if path
+                (format nil "AND path MATCH 'path:^~a'"
+                        (regex-replace-all
+                         "\\."
+                         (format nil "~{~a~^+~}" (rest (split "/" path)))
+                         "+"))
+                ""))))
       (mapcar #'car (execute-to-list db query)))))
 
 (defun add-folder (folder)
@@ -291,10 +296,10 @@
     (let ((socket (make-instance 'local-socket :type :stream)))
       (unwind-protect
            (progn
-	     (socket-connect
-	      socket
-	      (namestring (ballish-daemon-socket-path)))
-	     (socket-send socket "rfsh" nil))
+             (socket-connect
+              socket
+              (namestring (ballish-daemon-socket-path)))
+             (socket-send socket "rfsh" nil))
         (socket-close socket)))))
 
 (defun query-count (q tags path)
@@ -320,31 +325,31 @@
 
 (defun show-status ()
   (let* ((socket (test-server))
-	 (index-size (index-size))
-	 (queue-count (when socket (queue-count socket)))
-	 (folders-list (list-folders)))
+         (index-size (index-size))
+         (queue-count (when socket (queue-count socket)))
+         (folders-list (list-folders)))
     (format t "server status: ~a~%index size on disk: ~$M~%~aindexed folders:~%~a~%"
-	    (if socket "up" "down")
-	    index-size
-	    (if socket
-		(format nil "in-flight files to index: ~a~%"
-			(if (eql queue-count :busy)
-			    "more than 1000"
-			    queue-count))
-		"")
-	    (format nil "~{  - ~a~^~%~}" folders-list))))
+            (if socket "up" "down")
+            index-size
+            (if socket
+                (format nil "in-flight files to index: ~a~%"
+                        (if (eql queue-count :busy)
+                            "more than 1000"
+                            queue-count))
+                "")
+            (format nil "~{  - ~a~^~%~}" folders-list))))
 
 (defun test-server ()
   ;; fun fact: this one returns an open socket.
   (let ((socket (make-instance 'local-socket :type :stream)))
     (handler-case
-	(progn
-	  (socket-connect
-	   socket
-	   (namestring (ballish-daemon-socket-path)))
-	  socket)
+        (progn
+          (socket-connect
+           socket
+           (namestring (ballish-daemon-socket-path)))
+          socket)
       (socket-error ()
-	nil))))
+        nil))))
 
 (defun index-size ()
   (handler-case
@@ -356,15 +361,15 @@
   ;; fun fact: this one closes the socket.
   (unwind-protect
        (progn
-	 (socket-send socket "qcnt" nil )
-	 (let ((recv-thread
-		(make-thread
-		 (lambda (socket)
-		   (multiple-value-bind (response length)
-		       (socket-receive socket nil 32)
-		     (parse-integer (subseq (the simple-string response) 0 length))))
-		 :arguments (list socket))))
-	   (join-thread recv-thread :default :busy :timeout 1)))
+         (socket-send socket "qcnt" nil )
+         (let ((recv-thread
+                (make-thread
+                 (lambda (socket)
+                   (multiple-value-bind (response length)
+                       (socket-receive socket nil 32)
+                     (parse-integer (subseq (the simple-string response) 0 length))))
+                 :arguments (list socket))))
+           (join-thread recv-thread :default :busy :timeout 1)))
     (socket-close socket)))
 
 (defun list-folders ()
