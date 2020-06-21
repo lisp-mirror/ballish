@@ -42,6 +42,13 @@
 (defvar *debug* nil
   "Debug mode.")
 
+(defvar *errored* nil
+  "For some reason, sqlite manages to raise 2 errors (one for the
+  error itself, another in the finalize when it tries to reset the
+  statement), which ends up with 2 'unhandled sqlite error'
+  messages. Let's keep track of when it errored out and is going to
+  quit with this variable.")
+
 (defvar *repositories-toplevel-markers*
   '(".git" ".svn" ".hg"))
 
@@ -171,12 +178,12 @@
                            (when *debug*
                              (format *error-output* "~a~%" c))
                            (format *error-output* "fatal: unhandled error~%")
-                           (uiop:quit -1)))
+                           (uiop:quit -1 nil)))
                   (fatal-error (lambda (c)
                                  (when (and *debug* (fatal-error-condition c))
                                    (format *error-output* "~a~%" (fatal-error-condition c)))
                                 (format *error-output* "~a" c)
-                                (uiop:quit (code c))))
+                                (uiop:quit (code c) nil)))
                   (sb-sys:interactive-interrupt
                    (lambda (c)
                      (declare (ignore c))
@@ -190,15 +197,17 @@
                                          :code 3
                                          :condition c)))
                   (sqlite-error (lambda (c)
-                                  (if (eql (sqlite-error-code c) :busy)
-                                      (error 'fatal-error
-                                             :message "please try again later"
-                                             :code 4
-                                             :condition c)
-                                      (error 'fatal-error
-                                             :message "unhandled sqlite error"
-                                             :code 5
-                                             :condition c)))))
+				  (unless *errored*
+				    (setf *errored* t)
+				    (if (eql (sqlite-error-code c) :busy)
+					(error 'fatal-error
+					       :message "please try again later"
+					       :code 4
+					       :condition c)
+					(error 'fatal-error
+					       :message "unhandled sqlite error"
+					       :code 5
+					       :condition c))))))
     (multiple-value-bind (options args)
         (handler-case
             (get-opts)
