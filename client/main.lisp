@@ -49,6 +49,10 @@
   messages. Let's keep track of when it errored out and is going to
   quit with this variable.")
 
+(defvar *default-max-grep-results* 100
+  "The command line is limited in the number of bytes there can be, so
+  we put a limit on the number of files we can pass to grep.")
+
 (defvar *repositories-toplevel-markers*
   '(".git" ".svn" ".hg"))
 
@@ -319,7 +323,7 @@
 (defun grep (query results)
   (when (> (length results) (or (and (uiop:getenv "BL_MAX_GREP_RESULTS")
                                      (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS")))
-                                100))
+                                *default-max-grep-results*))
     (fatal "too many results to grep."))
   (let ((search (regex-replace-all "(\\w+)"
                                    (regex-replace-all "[\\+\\s]+" query ".*")
