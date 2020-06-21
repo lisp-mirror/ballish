@@ -271,7 +271,9 @@
             "SELECT ~a FROM source ~a ~a ~a ~a"
             (if count "count(*)" "path")
             (if (or q tags) "WHERE" "")
-            (if q (format nil "source MATCH 'content:~a'" q) "")
+            (if q (format nil "source MATCH 'content:~a'"
+			  (regex-replace-all "\\-" q "_"))
+		"")
             (if tags
                 (format nil "~a ~{source MATCH 'tags:~a'~^ AND ~}"
                         (if q "AND" "")
