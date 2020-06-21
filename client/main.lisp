@@ -295,7 +295,7 @@
             (if path
                 (format nil "AND path MATCH 'path:^~a'"
                         (regex-replace-all
-                         "\\."
+                         "[\\.\\-]"
                          (format nil "~{~a~^+~}" (rest (split "/" path)))
                          "+"))
                 ""))))
@@ -326,7 +326,10 @@
                                 *default-max-grep-results*))
     (fatal "too many results to grep."))
   (let ((search (regex-replace-all "(\\w+)"
-                                   (regex-replace-all "[\\+\\s]+" query ".*")
+                                   (regex-replace-all
+				    "\\-"
+				    (regex-replace-all "[\\+\\s]+" query ".*")
+				    "_")
                                    "\\b\\1\\b")))
     (handler-case
         (uiop:run-program
