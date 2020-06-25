@@ -16,7 +16,9 @@
 (in-package :ballish/daemon/source-indexing)
 
 (defvar *text-extensions-tags*
-  (yaml-load-file #p"daemon/source-indexing-text-extensions.yaml"))
+  (yaml-load-file (merge-pathnames
+		   #p"daemon/source-indexing-text-extensions.yaml"
+		   (asdf:system-source-directory :ballish/daemon/source-indexing))))
 
 (defvar *text-extensions* (hash-table-keys *text-extensions-tags*))
 
