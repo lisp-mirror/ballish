@@ -157,7 +157,17 @@
              (error e))))))
 
 (defun deindex-source (index path)
-  (log-debug "Deindexing-source ~a" path)
   (let ((path-str (namestring path)))
-    (execute-non-query (db index) "DELETE FROM source WHERE path = ?" path-str)
-    (execute-non-query (db index) "DELETE FROM source_meta WHERE path = ?" path-str)))
+    ;; Unintuitively, doing a SELECT before the DELETEs means we can
+    ;; avoid running a "FROM source WHERE path = ?", which is going to
+    ;; take forever, because fts5() is unindexed, and end up being oh
+    ;; so much faster.
+    (when (> (the fixnum
+		  (execute-single
+		   (db index)
+		   "SELECT COUNT(*) FROM source_meta WHERE path = ?"
+		   path-str))
+	     0)
+      (log-debug "Deindexing-source ~a" path)
+      (execute-non-query (db index) "DELETE FROM source WHERE path = ?" path-str)
+      (execute-non-query (db index) "DELETE FROM source_meta WHERE path = ?" path-str))))
