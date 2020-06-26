@@ -299,7 +299,19 @@
                          (format nil "~{~a~^+~}" (rest (split "/" path)))
                          "+"))
                 ""))))
-      (mapcar #'car (execute-to-list db query)))))
+      (reduce
+       ;; We're doing a MATCH on the path, which is not as precise as
+       ;; a =, so we need to filter out whichever path accidentally
+       ;; ended up in there.
+       (lambda (results result-list)
+	 (let ((result (car result-list)))
+	   (when (or (null path)
+		     (string= (the simple-string path)
+			      (the simple-string
+				   (subseq (the simple-string result) 0 (length path)))))
+	     (append results (list result)))))
+       (execute-to-list db query)
+       :initial-value nil))))
 
 (defun add-folder (folder)
   (with-open-database (db (ballish-db-path) :busy-timeout 1000)

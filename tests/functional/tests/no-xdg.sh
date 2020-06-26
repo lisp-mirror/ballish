@@ -21,4 +21,4 @@ bl -f fixtures
 
 sleep 1
 
-test $(bl -q foo | wc -l) = 2
+test $(bl -q foo | wc -l) = 3
