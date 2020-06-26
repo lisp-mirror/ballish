@@ -95,26 +95,26 @@
               (deindex-source index path))))))
 
 (defun index-file (index path)
-  (handler-case
-      (let ((path-type (pathname-type path))
-            (s (stat path)))
-        (when (and (member path-type *text-extensions* :test #'string=)
-                   (< (stat-size s) *file-size-upper-bound*))
-          (log-debug "Indexing file ~a" path)
-          (handler-case
-              (index-source index
-                            path
-                            (stat-mtime s)
-                            (uiop:read-file-string path)
-                            (gethash path-type *text-extensions-tags*))
-            (stream-decoding-error ()
-              ;; Ignore non-valid-utf-8 files
-              (log-debug "~a was a binary file?" path)
-              nil))))
-    (syscall-error (e)
-      (when (= (syscall-errno e) 2)
-        (log-debug "Deindexing file ~a" path)
-        (deindex-source index path)))))
+  (let ((path-type (pathname-type path)))
+    (when (member path-type *text-extensions* :test #'string=)
+      (handler-case
+	  (let ((s (stat path)))
+	    (when (< (stat-size s) *file-size-upper-bound*)
+	      (log-debug "Indexing file ~a" path)
+	      (handler-case
+		  (index-source index
+				path
+				(stat-mtime s)
+				(uiop:read-file-string path)
+				(gethash path-type *text-extensions-tags*))
+		(stream-decoding-error ()
+		  ;; Ignore non-valid-utf-8 files
+		  (log-debug "~a was a binary file?" path)
+		  nil))))
+	(syscall-error (e)
+	  (when (= (syscall-errno e) 2)
+	    (log-debug "Deindexing file ~a" path)
+	    (deindex-source index path)))))))
 
 (defun index-source (index path mtime content tags)
   (loop
