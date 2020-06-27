@@ -56,6 +56,25 @@ The emacs packages offers 2 functions:
 - `ballish-ivy-grep-in-repository`: similar with ivy integration. Can
   replace `counsel-git-grep` with similar performance.
 
+### Vim plugin
+
+Ballish provides a vim plugin for a neat integration inside your
+favorite editor.
+
+Once the distribution package is installed, you can use this new
+command:
+
+```vim
+:BallishGrepInRepository <your search query>
+```
+
+The vim plugin opens the quickfix window by default, which you can
+prevent by adding this to your .vimrc or equivalent:
+
+```vim
+let g:ballish_open_quickfix = 0
+```
+
 ## Hacking
 
 If you want to build ballish yourself, you will need:
