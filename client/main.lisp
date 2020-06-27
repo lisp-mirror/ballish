@@ -259,7 +259,8 @@
                                 nil
                                 (searched-folder options))))
             (if (getf options :grep)
-                (grep (getf options :query) results)
+                (when (> (length results) 0)
+		  (grep (getf options :query) results))
                 (format t "~{~a~%~}" results)))))
 
       (when-option (options :folder)
