@@ -108,9 +108,7 @@ running any `bl` command.
 
 ## Roadmap
 
-- Remove a folder.
-- Add search on Git commits.
-- Write an emacs package/vim plugin.
+- Potentially add search on Git commits.
 
 
   [0]: MANUAL.md
