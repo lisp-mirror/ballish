@@ -18,10 +18,6 @@ ballish can search across thousands and thousands of files in a few
 milliseconds. How? It will index your source code, live, whenever it
 changes. Then searching in the index is instant.
 
-## Usage
-
-See the [manual][0].
-
 ## Installation
 
 You can find the latest .rpm (Red Hat, CentOS, Fedora), .deb (Ubuntu,
@@ -34,6 +30,31 @@ sudo systemctl enable --now ballish-daemon@"$USER"
 ```
 
 (Or replace `$USER` with your username.)
+
+## Usage
+
+See the [manual][0] for the generic instructions. Alternatively, use
+`man ballish` once you have installed the distribution package.
+
+### Emacs package
+
+Ballish provides an Emacs package for a neat integration inside your
+favorite OS.
+
+Once the distribution package is installed, you can add this snippet
+to your init.el or equivalent:
+
+```elisp
+(require 'ballish)
+(global-set-key (kbd "...") 'ballish-grep-in-repository)
+```
+
+The emacs packages offers 2 functions:
+
+- `ballish-grep-in-repository`: run ballish in your current repository
+  and see the result in a grep-mode buffer.
+- `ballish-ivy-grep-in-repository`: similar with ivy integration. Can
+  replace `counsel-git-grep` with similar performance.
 
 ## Hacking
 

@@ -37,11 +37,13 @@ client-tests: $(wildcard tests/unit/client/*.lisp)
 		--eval '(asdf:test-system :ballish/client)' \
 		--quit
 
+args = --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" --name ballish --version $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/ emacs/ballish.el=/usr/share/emacs/site-lisp/
+
 deb:
-	fpm -s dir -t deb --depends libsqlite3-0 --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/
+	fpm -s dir -t deb --depends libsqlite3-0 $(args)
 
 rpm:
-	fpm -s dir -t rpm --depends sqlite-devel --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/
+	fpm -s dir -t rpm --depends sqlite-devel $(args)
 
 pkg:
-	fpm -s dir -t pacman --depends sqlite --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" -n ballish -v $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/
+	fpm -s dir -t pacman --depends sqlite $(args)
