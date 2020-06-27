@@ -333,17 +333,24 @@
 (defun query-count (q tags path)
   (query q tags t path))
 
+(declaim (ftype (function (string) string) sanitize-for-grep))
+(defun sanitize-for-grep (input)
+  (let ((replacements '(("(\\w+)" . "\\b\\1\\b")
+			("\\-" . "_")
+			("[\\+\\s]+" . ".*"))))
+    (reduce (lambda (output replacement)
+	      (regex-replace-all (car replacement) output (cdr replacement)))
+	    replacements
+	    :initial-value input)))
+
+(declaim (ftype (function (string list)) grep))
 (defun grep (query results)
-  (when (> (length results) (or (and (uiop:getenv "BL_MAX_GREP_RESULTS")
-                                     (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS")))
-                                *default-max-grep-results*))
+  (when (> (length results) (the fixnum
+				 (or (and (uiop:getenv "BL_MAX_GREP_RESULTS")
+					  (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS")))
+				     *default-max-grep-results*)))
     (fatal "too many results to grep."))
-  (let ((search (regex-replace-all "(\\w+)"
-                                   (regex-replace-all
-				    "\\-"
-				    (regex-replace-all "[\\+\\s]+" query ".*")
-				    "_")
-                                   "\\b\\1\\b")))
+  (let ((search (sanitize-for-grep query)))
     (handler-case
         (uiop:run-program
          (format nil "grep -HPins ~s ~{~s~^ ~}" search results)
