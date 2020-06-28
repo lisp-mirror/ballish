@@ -31,6 +31,7 @@
                 #:socket-send
                 #:socket-receive)
   (:import-from :sb-posix #:stat #:stat-size #:syscall-error)
+  (:import-from :log4cl #:log-debug)
   (:export #:main))
 
 (in-package :ballish/client/main)
@@ -275,7 +276,7 @@
 
       (when-option (options :delete)
 	(return-from main
-	  (delete-folder (getf options :folder))))
+	  (delete-folder (getf options :delete))))
 
       (when-option (options :purge)
 	(return-from main
@@ -348,6 +349,7 @@
   "This deletes a folder from the list of folders to index, but does
   not deindex the contents in those folders."
   (with-open-database (db (ballish-db-path) :busy-timeout 1000)
+    (log-debug "Deleting folder ~a" folder)
     (execute-non-query db "DELETE FROM folder WHERE path = ?" folder)))
 
 (defun query-count (q tags path)
