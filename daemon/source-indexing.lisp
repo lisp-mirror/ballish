@@ -11,7 +11,8 @@
   (:import-from :log4cl #:log-debug)
   (:import-from :cl-yaclyaml #:yaml-load-file)
   (:export #:with-source-indexing
-           #:wait))
+           #:wait
+	   #:purge-database))
 
 (in-package :ballish/daemon/source-indexing)
 
@@ -68,6 +69,14 @@
   (setf (thread i) (make-thread #'index-loop
                                 :arguments (list i)
                                 :name "Source index")))
+
+(defun purge-database (index)
+  (stop-indexing index)
+  (delete-file (source-index-db-path))
+  (setf (slot-value index 'db) (connect (source-index-db-path)))
+  (setf (thread index) (make-thread #'index-loop
+				    :arguments (list index)
+				    :name "Source index")))
 
 (defun make-source-indexing (files-queue)
   (make-instance 'source-index

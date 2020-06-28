@@ -42,6 +42,12 @@ node_modules folders, and all of those is encouraged.
 `--folder` *FOLDER*, `-f` *FOLDER*
 :   Add a folder to the index.
 
+`--delete` *FOLDER*, `-d` *FOLDER*
+:   Delete a folder from the index. Does not delete the files' contents from the index, use `--purge`.
+
+`--purge`, `-p`
+:   Purge the whole index. Queries will all return empty results, until new files are indexed.
+
 `--count`, `-c`
 :   Print the number of results. Can accept `--query` and `--tags` as well.
 
@@ -56,9 +62,6 @@ node_modules folders, and all of those is encouraged.
 
 `--optimize`, `-o`
 :   Optimize the index storage.
-
-`--debug`, `-d`
-:   Run in debug mode.
 
 `--status`, `-s`
 :   Print the indexing status.

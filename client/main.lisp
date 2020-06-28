@@ -125,7 +125,7 @@
    :short #\h
    :long "help")
   (:name :query
-   :description "run a query"
+   :description "run a query, use + instead of spaces"
    :short #\q
    :long "query"
    :arg-parser #'identity
@@ -142,6 +142,16 @@
    :long "folder"
    :arg-parser #'normalize-folder
    :meta-var "FOLDER")
+  (:name :delete
+   :description "delete folder from the index"
+   :short #\d
+   :long "delete"
+   :arg-parser #'normalize-folder
+   :meta-var "FOLDER")
+  (:name :purge
+   :description "purge the whole index"
+   :short #\p
+   :long "purge")
   (:name :count
    :description "count the results of a query"
    :short #\c
@@ -154,10 +164,6 @@
    :description "optimize the search index storage"
    :short #\o
    :long "optimize")
-  (:name :debug
-   :description "run in debug mode"
-   :short #\d
-   :long "debug")
   (:name :status
    :description "show indexing status"
    :short #\s
@@ -227,7 +233,7 @@
       (when args
         (fatal "unknown parameters: ~{~a~^, ~}" args))
 
-      (setf *debug* (getf options :debug))
+      (setf *debug* (uiop:getenvp "DEBUG"))
 
       (when-option (options :version)
         (return-from main (format t "version: ~a~%" *version*)))
@@ -266,6 +272,14 @@
       (when-option (options :folder)
         (return-from main
           (add-folder (getf options :folder))))
+
+      (when-option (options :delete)
+	(return-from main
+	  (delete-folder (getf options :folder))))
+
+      (when-option (options :purge)
+	(return-from main
+	  (purge-index)))
 
       (when-option (options :status)
         (return-from main
@@ -329,6 +343,12 @@
               (namestring (ballish-daemon-socket-path)))
              (socket-send socket "rfsh" nil))
         (socket-close socket)))))
+
+(defun delete-folder (folder)
+  "This deletes a folder from the list of folders to index, but does
+  not deindex the contents in those folders."
+  (with-open-database (db (ballish-db-path) :busy-timeout 1000)
+    (execute-non-query db "DELETE FROM folder WHERE path = ?" folder)))
 
 (defun query-count (q tags path)
   (query q tags t path))
@@ -413,3 +433,18 @@
 (defun list-folders ()
   (with-open-database (db (ballish-db-path) :busy-timeout 1000)
     (mapcar #'car (execute-to-list db "SELECT path FROM folder"))))
+
+(defun purge-index ()
+  (let ((socket (make-instance 'local-socket :type :stream)))
+    (unwind-protect
+	 (handler-case
+	     (progn
+	       (socket-connect
+		socket
+		(namestring (ballish-daemon-socket-path)))
+	       (socket-send socket "purg" nil)
+	       ;; Just wait for the server to close.
+	       (socket-receive socket nil 1))
+	   (socket-error ()
+	     nil))
+      (socket-close socket))))

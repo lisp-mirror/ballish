@@ -130,9 +130,12 @@
               (handle-inotify-event inotify message source-queue))
 
              (socket
-              (let ((new-folders
-                     (handle-client-socket message db inotify source-queue folders)))
-                (when new-folders (setf folders new-folders))))))))))
+	      (multiple-value-bind (action data)
+		  (handle-client-socket message db inotify source-queue folders)
+		(cond ((eql action :new-folders)
+		       (setf folders data))
+		      ((eql action :purge)
+		       (purge-database source-index)))))))))))
 
 (defun add-watches (inotify path source-queue &optional (action :add))
   ;; TODO: don't watch on read-only files (either fs or permission)
@@ -212,7 +215,9 @@
                   (socket-send socket (write-to-string queue-count) nil)
                 (socket-error ()
                   nil))
-              nil))
+              (values nil nil)))
+	   ("purg"
+	    (values :purge nil))
            ("rfsh"
             (let* ((new-folders (get-folders db))
                    (folders-to-watch (set-difference new-folders folders :test #'equal))
@@ -223,5 +228,5 @@
               (iter (for folder in folders-to-delete)
                     (remove-watches inotify folder source-queue))
 
-              new-folders))))
+              (values :new-folders new-folders)))))
     (socket-close socket)))
