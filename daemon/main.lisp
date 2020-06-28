@@ -196,11 +196,17 @@
                     (member :delete mask)
                     (member :delete-self mask)
                     (member :move-to mask)))
-           (lparallel.queue:push-queue (list :add path) source-queue))
+           (lparallel.queue:push-queue (list
+					:add (merge-pathnames (inotify-event-name event)
+							      path))
+				       source-queue))
 
           ((and (not (member :isdir mask))
                 (member :move-from mask))
-           (lparallel.queue:push-queue (list :delete path) source-queue)))))
+           (lparallel.queue:push-queue (list
+					:delete (merge-pathnames (inotify-event-name event)
+								 path))
+				       source-queue)))))
 
 (defun get-folders (db)
   (mapcar #'car (execute-to-list db "SELECT path FROM folder")))

@@ -100,9 +100,10 @@
   (loop
      (destructuring-bind (action path)
          (lparallel.queue:pop-queue (files-queue index))
-       (cond ((equal action :add)
+       (log-debug "Got ~a on ~a" action path)
+       (cond ((eql action :add)
               (index-file index path))
-             ((equal action :delete)
+             ((eql action :delete)
               (deindex-source index path))))))
 
 (defun index-file (index path)
