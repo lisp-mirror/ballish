@@ -54,3 +54,11 @@ test $(bl -q 2>&1 | wc -l) = 1
 
 # Make sure that subfolder-test isn't showing up in results.
 (cd fixtures/subfolder && test $(bl -q foo -r | wc -l) = 1)
+
+test $(bl -q titi | wc -l) = 1
+
+echo titi >> fixtures/python.py
+
+sleep 1
+
+test $(bl -q titi | wc -l) = 2
