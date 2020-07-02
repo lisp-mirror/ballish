@@ -210,15 +210,26 @@
                   (sqlite-error (lambda (c)
 				  (unless *errored*
 				    (setf *errored* t)
-				    (if (eql (sqlite-error-code c) :busy)
-					(error 'fatal-error
-					       :message "please try again later"
-					       :code 4
-					       :condition c)
-					(error 'fatal-error
-					       :message "unhandled sqlite error"
-					       :code 5
-					       :condition c))))))
+				    (cond
+				      ((eql (sqlite-error-code c) :busy)
+				       (error 'fatal-error
+					      :message "please try again later"
+					      :code 4
+					      :condition c))
+				      ((and (eql (sqlite-error-code c) :error)
+					    (let ((msg (sqlite-error-message c))
+						  (expected "no such table"))
+					      (and (> (length msg) (length expected))
+						   (string= (subseq msg 0 (length expected))
+							    expected))))
+				       (error 'fatal-error
+					      :message "no index found, are you sure the daemon is started?"
+					      :code 8
+					      :condition c))
+				      (t (error 'fatal-error
+						:message "unhandled sqlite error"
+						:code 5
+						:condition c)))))))
     (multiple-value-bind (options args)
         (handler-case
             (get-opts)
