@@ -56,6 +56,11 @@
 				     (uiop:getenv "CI"))
 			    (uiop:quit -1))))
 
+(defsystem "ballish/site"
+  :defsystem-depends-on ("wild-package-inferred-system")
+  :class "winfer:wild-package-inferred-system"
+  :depends-on ("ballish/site/*"))
+
 (defmethod perform :before ((op program-op) (c system))
   ;; Close the non-system foreign libraries as we're using
   ;; :static-program-op to embed them into our binary. The system
