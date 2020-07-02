@@ -37,7 +37,7 @@ client-tests: $(wildcard tests/unit/client/*.lisp)
 		--eval '(asdf:test-system :ballish/client)' \
 		--quit
 
-args = --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" --name ballish --version $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/ emacs/ballish.el=/usr/share/emacs/site-lisp/ vim/ballish.vim=/usr/share/vim/vimfiles/plugin/ballish.vim
+args = --license GPLv2 --description "A pretty fast code search tool" --maintainer "Florian Margaine <florian@margaine.com>" --name ballish --version $(VERSION) bl=/usr/bin/ ballish-daemon=/usr/bin/ ballish.1.gz=/usr/share/man/man1/ ballish-daemon@.service=/lib/systemd/system/ 50-ballish.conf=/usr/lib/sysctl.d/ emacs/ballish.el=/usr/share/emacs/site-lisp/ vim/ballish.vim=/usr/share/vim/vimfiles/plugin/ballish.vim vim/ballish.vim=/usr/share/nvim/site/plugin/ballish.vim
 
 deb:
 	fpm -s dir -t deb --depends libsqlite3-0 $(args)
