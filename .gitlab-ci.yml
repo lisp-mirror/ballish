@@ -2,6 +2,23 @@ stages:
   - build
   - publish
 
+pages:
+  image: debian:buster
+  stage: build
+  script:
+    - apt-get update -qq
+    - apt-get install -y git-core build-essential sbcl curl zlib1g-dev wget
+    - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit &> /dev/null
+    - git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/ &> /dev/null
+    - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --quit
+    - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --eval '(ballish/site/main:start-server 8888)' --eval '(sleep 9999)' &
+    - sleep 5
+    - wget -mkEpnp localhost:8888
+    - mv localhost:8888 public/
+  artifacts:
+    paths:
+      - public
+
 .compile-debian: &compile-debian
   stage: build
   image: debian:${DIST}
