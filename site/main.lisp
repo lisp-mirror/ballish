@@ -10,5 +10,5 @@
   (start (make-instance 'easy-acceptor
 			:port (or port (parse-integer (getenv "PORT")))
 			:document-root (merge-pathnames
-					#p"site/"
+					#p"site/static/"
 					(asdf:system-source-directory :ballish/site/main)))))

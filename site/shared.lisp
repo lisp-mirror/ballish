@@ -25,7 +25,7 @@
    '(header
      :background (rgb 51 51 51)
      :display grid
-     :grid-template-columns 50% 50%
+     :grid-template-columns 25% 25% 50%
      (.logo
       :margin 0
       :padding 5px
@@ -37,6 +37,10 @@
       (span.rest
        :font-size 30px
        :letter-spacing -5px))
+     (.subtitle
+      :color (rgb 255 255 250)
+      :justify-self center
+      :align-self center)
      (.menu
       :display grid
       :grid-template-columns 20% 20% 20% 20% 20%
@@ -49,16 +53,29 @@
       (a.selected
        :color (rgb 170 170 170))))
    '(section.body
-     :margin 0 10%
+     :margin 0 20%
      :padding 2% 1%
-     :background (rgb 220 220 220))
+     (article
+      :display grid)
+     (pre
+      :background (rgb 51 51 51)
+      :color (rgb 238 238 238)
+      :padding 10px
+      :width 60%
+      :justify-self center)
+     (img
+      :width 60%
+      :justify-self center)
+     (hr
+      :width 100%
+      :border 1px solid black
+      :margin 5% 0))
    '(footer
      :background (rgb 51 51 51)
      :color (rgb 255 255 250)
      :padding 15px
      :font-size 85%
-     :margin 0 10%
-     :border-radius 0 0 5px 5px)))
+     :margin 0)))
 
 (defmacro with-page ((&key title) &body body)
   `(with-html-string
@@ -72,6 +89,9 @@
 	(:div.logo
 	 (:span.first "B")
 	 (:span.rest "allish"))
+
+	(:div.subtitle
+	 "A pretty fast code search tool")
 
 	(:section.menu
 	 (dolist (item '(("/" "Home")
