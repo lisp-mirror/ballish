@@ -70,6 +70,13 @@
       :width 100%
       :border 1px solid black
       :margin 5% 0))
+   '(:media "(max-width: 1000px)"
+     (section.body
+      :margin 0
+      (pre
+       :width 95%)
+      (img
+       :width 95%)))
    '(footer
      :background (rgb 51 51 51)
      :color (rgb 255 255 250)
