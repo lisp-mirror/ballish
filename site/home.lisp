@@ -20,14 +20,14 @@ user    0m0.053s
 sys     0m0.030s
 ")
      (:p "Interesting.  How often is that used?")
-     (:pre "[dev@tag ~]$ time bl -q ext4_debug -g -c
-11
+     (:pre "[dev@tag ~]$ time bl -q ext4_debug -g | wc -l
+51
 
-real    0m0.056s
-user    0m0.034s
-sys     0m0.021s
+real    0m0.100s
+user    0m0.063s
+sys     0m0.042s
 ")
-     (:p "Not much.  Oh well.")
+     (:p "A bit.  Potentially useful.")
      (:p "But wait!  This was way too fast.  Feels a bit cheating.  How much data is this 'bl' actually looking into?")
      (:pre "[dev@tag ~]$ bl --status
 server status: up
