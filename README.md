@@ -31,6 +31,7 @@ currently supports:
 - Ubuntu 20.04 (LTS, currently latest)
 - Fedora 31 (currently before-latest, still supported)
 - Fedora 32 (currently latest)
+- Arch Linux
 
 Once installed, you should start the systemd service:
 
