@@ -63,11 +63,9 @@
       :color (rgb 238 238 238)
       :padding 10px
       :width 70%
-      :justify-self center
       :overflow auto)
      (img
-      :width 70%
-      :justify-self center)
+      :width 70%)
      (hr
       :width 100%
       :border 1px solid black
