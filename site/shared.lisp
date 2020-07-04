@@ -55,6 +55,7 @@
    '(section.body
      :margin 0 20%
      :padding 2% 1%
+     :font-size 110%
      (article
       :display grid)
      (pre
