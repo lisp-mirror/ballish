@@ -20,8 +20,17 @@ changes. Then searching in the index is instant.
 
 ## Installation
 
-You can find the latest .rpm (Red Hat, CentOS, Fedora), .deb (Ubuntu,
-Debian) or .pkg.tar.xz (Arch) on the [releases page][1].
+You can find the latest release on the [releases page][1]. Ballish
+currently supports:
+
+- Debian Stretch (10, currently oldstable)
+- Debian Buster (11, currently stable)
+- Debian Bullseye (12, currently testing/sid)
+- Ubuntu 18.04 (LTS)
+- Ubuntu 19.10 (non-LTS, currently before-latest)
+- Ubuntu 20.04 (LTS, currently latest)
+- Fedora 31 (currently before-latest, still supported)
+- Fedora 32 (currently latest)
 
 Once installed, you should start the systemd service:
 
