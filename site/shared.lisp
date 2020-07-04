@@ -31,7 +31,7 @@
       :padding 5px
       :font-family "\"Lucida Console\", Monaco, monospace"
       :font-size 50px
-      :color (rgb 220 0 0)
+      :color (rgb 265 165 0)
       (span.first
        :font-size 40px)
       (span.rest
