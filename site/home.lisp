@@ -12,7 +12,7 @@
       "[dev@tag ~]$ pwd
 /home/dev
 [dev@tag ~]$ time bl -q define+ext4_debug -g
-/home/dev/kernel/fs/ext4/ext4.h:73:#define ext4_debug(f, a...)                                                \
+/home/dev/kernel/fs/ext4/ext4.h:73:#define ext4_debug(f, a...)
 /home/dev/kernel/fs/ext4/ext4.h:80:#define ext4_debug(fmt, ...)       no_printk(fmt, ##__VA_ARGS__)
 
 real    0m0.083s
