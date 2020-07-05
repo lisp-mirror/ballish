@@ -3,9 +3,9 @@
 set -xe
 
 export VERSION="${CI_BUILD_TAG:-1.0.0}"
+gem install --no-document fpm &> /dev/null
 export HOME=/home/lisp
 
-gem install --no-document fpm &> /dev/null
 git clone https://github.com/sbcl/sbcl.git ~/sbcl &> /dev/null
 # sbcl 2.0.4 is buggy for linkable-runtime
 (
