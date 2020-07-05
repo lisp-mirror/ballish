@@ -49,7 +49,7 @@ node_modules folders, and all of those is encouraged.
 :   Purge the whole index. Queries will all return empty results, until new files are indexed.
 
 `--count`, `-c`
-:   Print the number of results. Can accept `--query` and `--tags` as well.
+:   Print the number of matching files. Can accept `--query` and `--tags` as well. If used with `--grep`, print the number of grep matches.
 
 `--grep`, `-g`
 :   Run grep on every result. See GREP.

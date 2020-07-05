@@ -20,12 +20,15 @@ user    0m0.053s
 sys     0m0.030s
 ")
      (:p "Interesting.  How often is that used?")
-     (:pre "[dev@tag ~]$ time bl -q ext4_debug -g | wc -l
-51
+     (:pre "[dev@tag ~]$ time bl -q ext4_debug -g -c
+/home/dev/kernel/fs/ext4/ext4.h:2
+[...skipping for clarity...]
+/home/dev/kernel/fs/ext4/move_extent.c:12
+[...skipping for clarity...]
 
-real    0m0.100s
-user    0m0.063s
-sys     0m0.042s
+real    0m0.084s
+user    0m0.046s
+sys     0m0.037s
 ")
      (:p "A bit.  Potentially useful.")
      (:p "But wait!  This was way too fast.  Feels a bit cheating.  How much data is this 'bl' actually looking into?")

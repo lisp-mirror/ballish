@@ -262,23 +262,17 @@
             (format t "Optimizing storage...~%")
             (optimize-fts))))
 
-      (when-option (options :count)
-        (return-from main
-          (format t "~{~a~%~}"
-                  (query-count (getf options :query)
-                               (getf options :tags)
-                               (searched-folder options)))))
-
       (when (or (getf options :query)
-                (getf options :tags))
+                (getf options :tags)
+		(getf options :count))
         (return-from main
           (let ((results (query (getf options :query)
                                 (getf options :tags)
-                                nil
+                                (and (getf options :count) (not (getf options :grep)))
                                 (searched-folder options))))
             (if (getf options :grep)
                 (when (> (length results) 0)
-		  (grep (getf options :query) results))
+		  (grep (getf options :query) results (getf options :count)))
                 (format t "~{~a~%~}" results)))))
 
       (when-option (options :folder)
@@ -363,9 +357,6 @@
     (log-debug "Deleting folder ~a" folder)
     (execute-non-query db "DELETE FROM folder WHERE path = ?" folder)))
 
-(defun query-count (q tags path)
-  (query q tags t path))
-
 (declaim (ftype (function (string) string) sanitize-for-grep))
 (defun sanitize-for-grep (input)
   (let ((replacements '(("(\\w+)" . "\\b\\1\\b")
@@ -376,8 +367,8 @@
 	    replacements
 	    :initial-value input)))
 
-(declaim (ftype (function (string list)) grep))
-(defun grep (query results)
+(declaim (ftype (function (string list boolean)) grep))
+(defun grep (query results count)
   (when (> (length results) (the fixnum
 				 (or (and (uiop:getenv "BL_MAX_GREP_RESULTS")
 					  (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS")))
@@ -386,7 +377,7 @@
   (let ((search (sanitize-for-grep query)))
     (handler-case
         (uiop:run-program
-         (format nil "grep -HPins ~s ~{~s~^ ~}" search results)
+         (format nil "grep ~a ~a ~s ~{~s~^ ~}" (if count "" "-HPins") (if count "-c" "") search results)
          :output :interactive :error-output :interactive :input :interactive)
       (error (e) (format *error-output* "~a~%" e)))))
 

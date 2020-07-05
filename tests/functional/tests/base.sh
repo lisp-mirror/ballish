@@ -29,6 +29,8 @@ test $(bl -q baz | wc -l) = 0
 
 test $(bl -q foo -g | wc -l) = 4
 
+test $(bl -q bar -g -c) = 1
+
 test $(bl -c) = 4
 
 (cd fixtures/subfolder && test $(bl -q qux -r | wc -l) = 2)
