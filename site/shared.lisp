@@ -63,7 +63,8 @@
       :color (rgb 238 238 238)
       :padding 10px
       :width 70%
-      :overflow auto)
+      :overflow auto
+      :font-size 110%)
      (img
       :width 70%)
      (hr
