@@ -45,12 +45,12 @@
       :display grid
       :grid-template-columns 20% 20% 20% 20% 20%
       :width 100%
-      (a
+      (.item
        :color (rgb 255 255 250)
        :text-decoration none
        :justify-self center
        :align-self center)
-      (a.selected
+      (.item.selected
        :color (rgb 170 170 170))))
    '(section.body
      :margin 0 20%
@@ -103,13 +103,12 @@
 
 	(:section.menu
 	 (dolist (item '(("/" "Home")
-			 ("https://gitlab.com/ralt/ballish/-/releases/" "Download")
+			 ("/download" "Download")
 			 ("https://gitlab.com/ralt/ballish/-/blob/master/MANUAL.md" "Manual")
 			 ("https://gitlab.com/ralt/ballish/" "Contribute")
 			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))
-	   (:a :class (when (string= ,title (second item))
-			"selected")
-	       :href (first item)
-	       (second item)))))
+	   (if (string= ,title (second item))
+	       (:span :class "selected item" (second item))
+	       (:a :class "item" :href (first item) (second item))))))
        (:section.body ,@body)
        (:footer "Copyright © 2020 Florian Margaine")))))

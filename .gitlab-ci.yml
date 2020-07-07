@@ -5,6 +5,8 @@ stages:
 pages:
   image: debian:buster
   stage: build
+  only:
+    - tags
   script:
     - apt-get update -qq
     - apt-get install -y git-core build-essential sbcl curl zlib1g-dev wget
