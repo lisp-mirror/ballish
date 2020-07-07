@@ -114,8 +114,8 @@
   (find-repository-toplevel (make-pathname :directory (butlast (pathname-directory folder)))))
 
 (defun searched-folder (options)
-  (when-option (options :localized)
-    (return-from searched-folder (getf options :localized)))
+  (when-option (options :location)
+    (return-from searched-folder (getf options :location)))
   (when-option (options :repository)
     (return-from searched-folder
       (namestring (find-repository-toplevel (uiop:getcwd))))))
@@ -173,10 +173,10 @@
    :description "print version"
    :short #\v
    :long "version")
-  (:name :localized
-   :description "search in a localized folder"
+  (:name :location
+   :description "search in a specific folder"
    :short #\l
-   :long "localized"
+   :long "location"
    :arg-parser #'normalize-folder
    :meta-var "FOLDER")
   (:name :repository
@@ -292,9 +292,9 @@
           (show-status)))
 
       (when (or (getf options :repository)
-                (getf options :localized))
+                (getf options :location))
         (error 'fatal-error
-               :message "--repository and --localized need to be run with a query"
+               :message "--repository and --location need to be run with a query"
                :code 7)))))
 
 (defun query (q tags &optional (count nil) (path nil))

@@ -57,7 +57,7 @@ node_modules folders, and all of those is encouraged.
 `--repository`, `-r`
 :   Run the search in the current folder's repository.
 
-`--localized` *FOLDER*, `-l` *FOLDER*
+`--location` *FOLDER*, `-l` *FOLDER*
 :   Run the search in the specified folder.
 
 `--optimize`, `-o`
@@ -69,7 +69,7 @@ node_modules folders, and all of those is encouraged.
 `--version`, `-v`
 :   Print the version.
 
-Note: `--repository` and `--localized` do not make the search
+Note: `--repository` and `--location` do not make the search
 faster. They only exist to help narrow down the list of results.
 
 # GREP
@@ -78,11 +78,11 @@ By default, ballish results will be the files in which the results
 have been found. You might prefer a better output with `<file>:<line
 number>:<line>`, which is what the `--grep` option gives you.
 
-Note that the option will error if more than 100 results are
-found. The primary use case for this option is integration with
-editors, where more than a handful of results leads to a bad UI. You
-can override the limit by setting the `BL_MAX_GREP_RESULTS`
-environment variable.
+Note that the option will error with the message `fatal: too many
+results to grep` if more than 100 files are found. The primary use
+case for this option is integration with editors, where more than a
+handful of results leads to a bad UI. You can override the limit by
+setting the `BL_MAX_GREP_RESULTS` environment variable.
 
 # EXAMPLES
 
