@@ -9,7 +9,7 @@
 (in-package :ballish/util/main)
 
 (defun ballish-path (&rest more)
-  (uiop:xdg-data-home #p"ballish/" more))
+  (uiop:xdg-cache-home #p"ballish/" more))
 
 (defun ballish-db-path ()
   (let ((path (ballish-path #p"ballish.db")))
@@ -30,7 +30,7 @@
     path))
 
 (defun source-index-path (&rest more)
-  (uiop:xdg-data-home #p"ballish/" more))
+  (uiop:xdg-cache-home #p"ballish/" more))
 
 (defun source-index-db-path ()
   (let ((path (source-index-path #p"source.db")))

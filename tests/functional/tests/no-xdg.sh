@@ -10,7 +10,7 @@ set -xe
 export HOME=$tmp
 
 unset XDG_RUNTIME_DIR
-unset XDG_DATA_HOME
+unset XDG_CACHE_HOME
 
 ballish-daemon &
 trap "kill -9 %1" EXIT
