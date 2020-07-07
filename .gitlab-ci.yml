@@ -31,7 +31,7 @@ pages:
     - make deb VERSION="${CI_BUILD_TAG:-1.0.0}"
     - mv ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_"${DIST}"_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
   artifacts:
-    expire_in: '1 hour'
+    expire_in: '1 day'
     paths:
       - ballish_${DIST}_${CI_BUILD_TAG:-1.0.0}_amd64.deb
 
@@ -45,7 +45,7 @@ pages:
     - make deb VERSION="${CI_BUILD_TAG:-1.0.0}"
     - mv ballish_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_"${DIST}"_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb
   artifacts:
-    expire_in: '1 hour'
+    expire_in: '1 day'
     paths:
       - ballish_ubuntu_${DIST}_${CI_BUILD_TAG:-1.0.0}_amd64.deb
 
@@ -59,7 +59,7 @@ pages:
     - make rpm VERSION="${CI_BUILD_TAG:-1.0.0}"
     - mv ballish-"${CI_BUILD_TAG:-1.0.0}"-1.x86_64.rpm ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f${DIST}.x86_64.rpm
   artifacts:
-    expire_in: '1 hour'
+    expire_in: '1 day'
     paths:
       - ballish-${CI_BUILD_TAG:-1.0.0}-1.f${DIST}.x86_64.rpm
 
@@ -72,7 +72,7 @@ compile-arch:
     - export PATH=~/.gem/ruby/$(ls ~/.gem/ruby)/bin:$PATH
     - make pkg VERSION="${CI_BUILD_TAG:-1.0.0}"
   artifacts:
-    expire_in: '1 hour'
+    expire_in: '1 day'
     paths:
       - ballish-${CI_BUILD_TAG:-1.0.0}-1-x86_64.pkg.tar.xz
 
