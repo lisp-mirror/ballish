@@ -1,4 +1,4 @@
-all: ballish-daemon bl ballish.1.gz
+all: ballish-daemon bl ballish.1
 
 ballish-daemon: $(wildcard daemon/*.lisp)
 	sbcl \
