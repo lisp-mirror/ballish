@@ -8,6 +8,7 @@ pages:
   only:
     - tags
   script:
+    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - apt-get update -qq
     - apt-get install -y git-core build-essential sbcl curl zlib1g-dev wget
     - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit &> /dev/null
