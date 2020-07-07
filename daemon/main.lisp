@@ -84,6 +84,14 @@
      ,@body))
 
 (defun main ()
+  (when (> (length uiop:*command-line-arguments*) 1)
+    (return-from main
+      (format t "This is ballish-daemon version ~a.
+
+This daemon needs to run as the user, typically through a systemd service.
+
+See the installation instructions for more information.~%" *version*)))
+
   (log-info "ballish-daemon starting at version ~a" *version*)
 
   (when (not (= 0 (getuid)))
