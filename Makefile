@@ -21,7 +21,7 @@ bl: $(wildcard client/*.lisp)
 		--quit
 
 ballish.1: MANUAL.md
-	pandoc -s -t man $<
+	pandoc -s -t man $< > ballish.1
 
 .PHONY: deb rpm pkg tests client-tests
 

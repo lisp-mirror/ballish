@@ -1,7 +1,7 @@
 *.fasl
 ballish-daemon
 bl
-ballish.1.gz
+ballish.1
 *.rpm
 *.deb
 *.tar.xz
