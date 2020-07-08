@@ -70,7 +70,7 @@ compile-arch:
   stage: build
   image: archlinux:latest
   script:
-    - pacman -Sy --noconfirm ruby rubygems sbcl git libffi gcc make
+    - pacman -Sy --noconfirm ruby rubygems sbcl git libffi gcc make pandoc
     - ./.ci/build.sh
     - export PATH=~/.gem/ruby/$(ls ~/.gem/ruby)/bin:$PATH
     - make pkg VERSION="${CI_BUILD_TAG:-1.0.0}"
