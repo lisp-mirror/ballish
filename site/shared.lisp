@@ -107,7 +107,7 @@
 	 "A pretty fast code search tool")
 
 	(:section.menu
-	 (dolist (item '(("/" "Home")
+	 (dolist (item '(("/" "About")
 			 ("/download.html" "Download")
 			 ("/manual.html" "Manual")
 			 ("https://gitlab.com/ralt/ballish/" "Contribute")
