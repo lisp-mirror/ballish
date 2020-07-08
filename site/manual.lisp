@@ -102,6 +102,8 @@ indexed folders:
     (:pre ":BallishGrepInRepository <your search query>")
     (:p "The Vim plugin opens the quickfix window by default, which you can disable by adding this to your " (:code ".vimrc") " or equivalent:")
     (:pre "let g:ballish_open_quickfix = 0")
+    (:p "In the quickfix window, the lines are truncated to a given size to avoid polluting too much the window. The default value is 500 characters, but can be changed as such:")
+    (:pre "let g:ballish_max_grep_line_length = 1000")
 
     (:h3 :id "internals" "Internals")
 
