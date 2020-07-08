@@ -7,6 +7,8 @@ pages:
   stage: build
   only:
     - tags
+  dependencies:
+    - release
   script:
     - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - apt-get update -qq
