@@ -4,6 +4,6 @@
 
 (in-package :ballish/site/manual)
 
-(define-easy-handler (manual :uri "/manual") ()
+(define-easy-handler (manual :uri "/manual.html") ()
   (with-page (:title "Manual")
     "Hello!"))

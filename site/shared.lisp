@@ -105,8 +105,8 @@
 
 	(:section.menu
 	 (dolist (item '(("/" "Home")
-			 ("/download" "Download")
-			 ("/manual" "Manual")
+			 ("/download.html" "Download")
+			 ("/manual.html" "Manual")
 			 ("https://gitlab.com/ralt/ballish/" "Contribute")
 			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))
 	   (if (string= ,title (second item))
