@@ -6,7 +6,7 @@
 
 (define-easy-handler (manual :uri "/manual.html") ()
   (with-page (:title "Manual")
-    (:p "Welcome to ballish documentation! You're going to learn how to search across all of the code living on your machine in a few milliseconds, with some minimal setup. This documentation starts with a mini-tutorial to explain how to use the basic features, then drills down to more serious use cases, and ends with a full reference of all the options.")
+    (:p "Welcome to ballish documentation! You're going to learn how to search across all of the code living on your machine in a few milliseconds, with some minimal setup. This documentation starts with a mini-tutorial to explain how to use the basic features, then drills down to more serious use cases, and ends with explaining the internals.")
 
     (:h2 "Let's get started!")
 
