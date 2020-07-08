@@ -103,7 +103,7 @@
 
 	(:section.menu
 	 (dolist (item '(("/" "Home")
-			 ("/download" "Download")
+			 ("/download.html" "Download")
 			 ("https://gitlab.com/ralt/ballish/-/blob/master/MANUAL.md" "Manual")
 			 ("https://gitlab.com/ralt/ballish/" "Contribute")
 			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))

@@ -6,7 +6,7 @@
 
 (defvar *version* (uiop:getenv "VERSION"))
 
-(define-easy-handler (download :uri "/download") ()
+(define-easy-handler (download :uri "/download.html") ()
   (with-page (:title "Download")
     (:article
      (:h2 "Packages")

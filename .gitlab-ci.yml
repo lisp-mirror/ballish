@@ -16,7 +16,7 @@ pages:
     - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --quit
     - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --eval '(ballish/site/main:start-server 8888)' --eval '(sleep 9999)' &
     - sleep 5
-    - wget -mkEpnp localhost:8888
+    - wget -mEpnp localhost:8888
     - mv localhost:8888 public/
     # for some reason, wget doesn't load the favicon.
     - curl localhost:8888/favicon.ico > public/favicon.ico
