@@ -30,16 +30,16 @@
 	    (dolist (distribution '("stretch" "buster" "bullseye"))
 	      (:li (:a :href (format nil "#debian-~a" distribution)
 		       (format nil "Debian ~a" (string-capitalize distribution)))))))
-      (:li (:a :href "#ubuntu" "Ubuntu")
-	   (:ul
-	    (dolist (version '("18.04" "19.10" "20.04"))
-	      (:li (:a :href (format nil "#ubuntu-~a" version)
-		       (format nil "Ubuntu ~a" version))))))
       (:li (:a :href "#fedora" "Fedora")
 	   (:ul
 	    (dolist (version '("31" "32"))
 	      (:li (:a :href (format nil "#fedora-~a" version)
-		       (format nil "Fedora ~a" version)))))))
+		       (format nil "Fedora ~a" version))))))
+      (:li (:a :href "#ubuntu" "Ubuntu")
+	   (:ul
+	    (dolist (version '("18.04" "19.10" "20.04"))
+	      (:li (:a :href (format nil "#ubuntu-~a" version)
+		       (format nil "Ubuntu ~a" version)))))))
 
      (flet ((instructions (file command)
 	      (:p "Download the "
@@ -64,16 +64,16 @@
 		(format nil "Debian ~a" (string-capitalize distribution)))
 	   (instructions file "sudo dpkg -i")))
 
-       (:h3 :id "ubuntu" "Ubuntu")
-
-       (dolist (version '("18.04" "19.10" "20.04"))
-	 (let ((file (format nil "ballish_ubuntu_~a_~a_amd64.deb" version *version*)))
-	   (:h4 :id (format nil "ubuntu-~a" version) (format nil "Ubuntu ~a" version))
-	   (instructions file "sudo dpkg -i")))
-
        (:h3 :id "fedora" "Fedora")
 
        (dolist (version '("31" "32"))
 	 (let ((file (format nil "ballish-~a-1.f~a.x86_64.rpm" *version* version)))
 	   (:h4 :id (format nil "fedora-~a" version) (format nil "Fedora ~a" version))
-	   (instructions file "sudo dnf localinstall")))))))
+	   (instructions file "sudo dnf localinstall")))
+
+       (:h3 :id "ubuntu" "Ubuntu")
+
+       (dolist (version '("18.04" "19.10" "20.04"))
+	 (let ((file (format nil "ballish_ubuntu_~a_~a_amd64.deb" version *version*)))
+	   (:h4 :id (format nil "ubuntu-~a" version) (format nil "Ubuntu ~a" version))
+	   (instructions file "sudo dpkg -i")))))))
