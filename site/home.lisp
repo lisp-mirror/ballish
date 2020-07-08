@@ -7,6 +7,7 @@
 (define-easy-handler (home :uri "/") ()
   (with-page (:title "Home")
     (:article
+     (:blockquote :class "small" "Note: this is a Linux-only tool.")
      (:p "Once upon a time, you downloaded a copy of the Linux kernel source code.  A few moons later, you decided to look for some debugging facilities in the ext4 filesystem.  Because why not?")
      (:pre
       "[dev@tag ~]$ pwd

@@ -56,6 +56,8 @@
      :margin 0 20%
      :padding 2% 1%
      :font-size 110%
+     (.small
+      :font-size 85%)
      (article
       :display grid)
      (pre
@@ -103,8 +105,8 @@
 
 	(:section.menu
 	 (dolist (item '(("/" "Home")
-			 ("/download.html" "Download")
-			 ("https://gitlab.com/ralt/ballish/-/blob/master/MANUAL.md" "Manual")
+			 ("/download" "Download")
+			 ("/manual" "Manual")
 			 ("https://gitlab.com/ralt/ballish/" "Contribute")
 			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))
 	   (if (string= ,title (second item))
