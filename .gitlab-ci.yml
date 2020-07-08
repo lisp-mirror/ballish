@@ -1,5 +1,6 @@
 stages:
   - build
+  - release
   - publish
 
 .compile-debian: &compile-debian
@@ -98,7 +99,7 @@ compile-fedora-32:
   <<: *compile-fedora
 
 release:
-  stage: publish
+  stage: release
   image: inetprocess/gitlab-release
   only:
     refs:
@@ -119,11 +120,9 @@ release:
 
 pages:
   image: debian:buster
-  stage: build
+  stage: publish
   only:
     - tags
-  dependencies:
-    - release
   script:
     - export VERSION="${CI_BUILD_TAG:-1.0.0}"
     - apt-get update -qq
