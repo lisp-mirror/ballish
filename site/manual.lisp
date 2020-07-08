@@ -95,11 +95,13 @@ indexed folders:
     (:pre "\(require 'ballish\)
 \(global-set-key (kbd \"C-c g\"\) 'ballish-grep-in-repository\)")
     (:p "And you should be able to use " (:code "C-c g") " to start searching in the current git repository you're in.")
+    (:blockquote :class "small" "Reminder: use \"+\" instead of spaces.")
 
     (:h4 :id "#vim" "Vim")
 
     (:p "After ballish is installed, a Vim plugin is provided, and you can use this command inside Vim:")
     (:pre ":BallishGrepInRepository <your search query>")
+    (:blockquote :class "small" "Reminder: use \"+\" instead of spaces.")
     (:p "The Vim plugin opens the quickfix window by default, which you can disable by adding this to your " (:code ".vimrc") " or equivalent:")
     (:pre "let g:ballish_open_quickfix = 0")
     (:p "In the quickfix window, the lines are truncated to a given size to avoid polluting too much the window. The default value is 500 characters, but can be changed as such:")
