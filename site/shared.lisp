@@ -64,7 +64,7 @@
       :background (rgb 51 51 51)
       :color (rgb 238 238 238)
       :padding 10px
-      :width 70%
+      :width 100%
       :overflow auto
       :font-size 110%)
      (img

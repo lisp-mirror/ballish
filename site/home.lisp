@@ -48,5 +48,5 @@ indexed folders:
      (:img :src "/vim-ballish.png" :alt "Ballish integration in Vim")
      (:hr)
      (:p "Those are the capabitilies that ballish gives you: a very fast search across all of the code on your machine.  All at the tips of your fingers.  Integrated in your favorite editors.")
-     (:p "Ballish supports dozens of languages, even those that don't exist.  No size limits.  No new dependencies to add to make lsp work for your new language.  No fiddling with ctags options to make it \"mostly work\".  Instant search results.")
+     (:p "Ballish supports dozens of languages.  No size limits.  No new dependencies to add to make lsp work for your new language.  No fiddling with ctags options to make it \"mostly work\".  Instant search results.")
      (:p "Go and " (:a :href "/download.html" "get it for your favorite distribution!")))))

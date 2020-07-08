@@ -20,70 +20,11 @@ changes. Then searching in the index is instant.
 
 ## Installation
 
-You can find the latest release on the [releases page][1]. Ballish
-currently supports:
-
-- Debian Stretch (10, currently oldstable)
-- Debian Buster (11, currently stable)
-- Debian Bullseye (12, currently testing/sid)
-- Ubuntu 18.04 (LTS)
-- Ubuntu 19.10 (non-LTS, currently before-latest)
-- Ubuntu 20.04 (LTS, currently latest)
-- Fedora 31 (currently before-latest, still supported)
-- Fedora 32 (currently latest)
-- Arch Linux
-
-Once installed, you should start the systemd service:
-
-```bash
-sudo systemctl enable --now ballish-daemon@"$USER"
-```
-
-(Or replace `$USER` with your username.)
+See the [download page](https://ballish.margaine.com/download.html).
 
 ## Usage
 
-See the [manual][0] for the generic instructions. Alternatively, use
-`man ballish` once you have installed the distribution package.
-
-### Emacs package
-
-Ballish provides an Emacs package for a neat integration inside your
-favorite OS.
-
-Once the distribution package is installed, you can add this snippet
-to your init.el or equivalent:
-
-```elisp
-(require 'ballish)
-(global-set-key (kbd "...") 'ballish-grep-in-repository)
-```
-
-The emacs packages offers 2 functions:
-
-- `ballish-grep-in-repository`: run ballish in your current repository
-  and see the result in a grep-mode buffer.
-- `ballish-ivy-grep-in-repository`: similar with ivy integration. Can
-  replace `counsel-git-grep` with similar performance.
-
-### Vim plugin
-
-Ballish provides a vim plugin for a neat integration inside your
-favorite editor.
-
-Once the distribution package is installed, you can use this new
-command:
-
-```vim
-:BallishGrepInRepository <your search query>
-```
-
-The vim plugin opens the quickfix window by default, which you can
-prevent by adding this to your .vimrc or equivalent:
-
-```vim
-let g:ballish_open_quickfix = 0
-```
+See the [manual](https://ballish.margaine.com/manual.html).
 
 ## Hacking
 
