@@ -76,6 +76,9 @@
    '(:media "(max-width: 1000px)"
      (section.body
       :margin 0
+      ((and div :target)
+       :background (rgb 240 240 240)
+       :padding 10px)
       (pre
        :width 95%)
       (img
