@@ -42,10 +42,10 @@ most_args = $(common_args) ballish-daemon@.service=/lib/systemd/system/
 arch_args = $(common_args) ballish-daemon@.service=/usr/lib/systemd/system/
 
 deb:
-	fpm -s dir -t deb $(most_args)
+	fpm -s dir -d libc6 -d zlib1g -t deb $(most_args)
 
 rpm:
-	fpm -s dir -t rpm $(most_args)
+	fpm -s dir -d glibc -d zlib -t rpm $(most_args)
 
 pkg:
-	fpm -s dir -t pacman $(arch_args)
+	fpm -s dir -d glibc -d zlib -t pacman $(arch_args)
