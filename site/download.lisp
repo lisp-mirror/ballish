@@ -49,7 +49,7 @@
 	      (:p "Then enable and start the daemon with:")
 	      (:pre "sudo systemctl enable --now ballish-daemon@\"$USER\"")
 	      (:p "You can then read the manual (either with " (:code "man ballish")
-		  "or " (:a :href "/manual" "here") ")"
+		  "or " (:a :href "/manual.html" "here") ")"
 		  ", with the first command to look at being " (:code "bl --folder") ".")))
 
        (:h3 :id "arch" "Arch Linux")
