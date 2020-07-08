@@ -56,13 +56,15 @@
      :margin 0 20%
      :padding 2% 1%
      :font-size 110%
+     (.small
+      :font-size 85%)
      (article
       :display grid)
      (pre
       :background (rgb 51 51 51)
       :color (rgb 238 238 238)
       :padding 10px
-      :width 70%
+      :width 100%
       :overflow auto
       :font-size 110%)
      (img
@@ -74,6 +76,9 @@
    '(:media "(max-width: 1000px)"
      (section.body
       :margin 0
+      ((and div :target)
+       :background (rgb 240 240 240)
+       :padding 10px)
       (pre
        :width 95%)
       (img
@@ -104,7 +109,7 @@
 	(:section.menu
 	 (dolist (item '(("/" "Home")
 			 ("/download.html" "Download")
-			 ("https://gitlab.com/ralt/ballish/-/blob/master/MANUAL.md" "Manual")
+			 ("/manual.html" "Manual")
 			 ("https://gitlab.com/ralt/ballish/" "Contribute")
 			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))
 	   (if (string= ,title (second item))

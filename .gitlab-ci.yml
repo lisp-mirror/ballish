@@ -1,28 +1,7 @@
 stages:
   - build
+  - release
   - publish
-
-pages:
-  image: debian:buster
-  stage: build
-  only:
-    - tags
-  script:
-    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
-    - apt-get update -qq
-    - apt-get install -y git-core build-essential sbcl curl zlib1g-dev wget
-    - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit &> /dev/null
-    - git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/ &> /dev/null
-    - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --quit
-    - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --eval '(ballish/site/main:start-server 8888)' --eval '(sleep 9999)' &
-    - sleep 5
-    - wget -mEpnp localhost:8888
-    - mv localhost:8888 public/
-    # for some reason, wget doesn't load the favicon.
-    - curl localhost:8888/favicon.ico > public/favicon.ico
-  artifacts:
-    paths:
-      - public
 
 .compile-debian: &compile-debian
   stage: build
@@ -120,7 +99,7 @@ compile-fedora-32:
   <<: *compile-fedora
 
 release:
-  stage: publish
+  stage: release
   image: inetprocess/gitlab-release
   only:
     refs:
@@ -138,3 +117,25 @@ release:
   script:
     - apk update && apk add --no-cache git
     - gitlab-release -m "$(printf "Shortlog:\n\n$(git log $(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1))..HEAD --format='* %h %s%n')\n\nArtifacts:\n\n")" ballish_stretch_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_buster_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_bullseye_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f31.x86_64.rpm ballish-"${CI_BUILD_TAG:-1.0.0}"-1.f32.x86_64.rpm ballish_ubuntu_18.04_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_19.10_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish_ubuntu_20.04_"${CI_BUILD_TAG:-1.0.0}"_amd64.deb ballish-${CI_BUILD_TAG:-1.0.0}-1-x86_64.pkg.tar.xz
+
+pages:
+  image: debian:buster
+  stage: publish
+  only:
+    - tags
+  script:
+    - export VERSION="${CI_BUILD_TAG:-1.0.0}"
+    - apt-get update -qq
+    - apt-get install -y git-core build-essential sbcl curl zlib1g-dev wget
+    - curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit &> /dev/null
+    - git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/ &> /dev/null
+    - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --quit
+    - sbcl --load ~/quicklisp/setup.lisp --eval "(push \"${PWD}/\" asdf:*central-registry*)" --eval '(ql:quickload :ballish/site)' --eval '(ballish/site/main:start-server 8888)' --eval '(sleep 9999)' &
+    - sleep 5
+    - wget -mEpnp localhost:8888
+    - mv localhost:8888 public/
+    # for some reason, wget doesn't load the favicon.
+    - curl localhost:8888/favicon.ico > public/favicon.ico
+  artifacts:
+    paths:
+      - public
