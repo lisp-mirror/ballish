@@ -48,8 +48,10 @@
 	      (:pre (format nil "~a ~a" command file))
 	      (:p "Then enable and start the daemon with:")
 	      (:pre "sudo systemctl enable --now ballish-daemon@\"$USER\"")
-	      (:p "You can then look at " (:code "man ballish")
-		  ", with the first command to look at being " (:code "bl --folder"))))
+	      (:p "You can then read the manual (either with " (:code "man ballish")
+		  "or " (:a :href "https://gitlab.com/ralt/ballish/-/blob/master/MANUAL.md"
+			    "here") ")"
+		  ", with the first command to look at being " (:code "bl --folder") ".")))
 
        (:h3 :id "arch" "Arch Linux")
 
