@@ -28,7 +28,14 @@
   "Grep for a given query in the current repository."
   (interactive (list (read-from-minibuffer "Query: ")))
   (require 'grep)
-  (compilation-start (concat ballish-command " -r -g -q " query) 'grep-mode))
+  (compilation-start (concat ballish-command " --repository --grep --query " query) 'grep-mode))
+
+;;;###autoload
+(defun ballish-grep-everywhere (query)
+  "Grep for a given query everywhere."
+  (interactive (list (read-from-minibuffer "Query: ")))
+  (require 'grep)
+  (compilation-start (concat ballish-command " --grep --query " query) 'grep-mode))
 
 ;;;###autoload
 (defun ballish-ivy-grep-in-repository ()
@@ -36,7 +43,7 @@
   (interactive)
   (require 'counsel)
 
-  (ivy-read "query: " #'ballish--ivy-grep-function
+  (ivy-read "query: " #'ballish--ivy-grep-in-repository-function
 	    :initial-input ""
 	    :dynamic-collection t
 	    :keymap counsel-git-grep-map
@@ -45,12 +52,35 @@
 	    :require-match t
 	    :caller 'ballish-ivy-grep-in-repository))
 
-(defun ballish--ivy-grep-function (query)
+(defun ballish--ivy-grep-in-repository-function (query)
   "Grep in the current Git repository for a given query."
   (or (ivy-more-chars)
       (progn
 	(counsel--async-command
-	 (concat ballish-command " -r -g -q " query))
+	 (concat ballish-command " --repository --grep --query " query))
+	nil)))
+
+;;;###autoload
+(defun ballish-ivy-grep-everywhere ()
+  "Grep for a given query everywhere using ivy."
+  (interactive)
+  (require 'counsel)
+
+  (ivy-read "query: " #'ballish--ivy-grep-everywhere-function
+	    :initial-input ""
+	    :dynamic-collection t
+	    :keymap counsel-git-grep-map
+	    :action #'counsel-git-grep-action
+	    :history 'counsel-git-grep-history
+	    :require-match t
+	    :caller 'ballish-ivy-grep-everywhere))
+
+(defun ballish--ivy-grep-everywhere-function (query)
+  "Grep everywhere for a given query."
+  (or (ivy-more-chars)
+      (progn
+	(counsel--async-command
+	 (concat ballish-command " --grep --query " query))
 	nil)))
 
 (provide 'ballish)

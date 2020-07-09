@@ -53,7 +53,8 @@ indexed folders:
       (:ul
        (:li (:a :href "#emacs" "Emacs"))
        (:li (:a :href "#vim" "Vim"))))
-     (:li (:a :href "#internals" "Internals")))
+     (:li (:a :href "#internals" "Internals"))
+     (:li (:a :href "#exit" "Exit codes")))
 
     (:h3 :id "tags" "Tags")
 
@@ -75,7 +76,7 @@ indexed folders:
      (:li (:code "--location FOLDER, -l FOLDER") ": search in a specific folder")
      (:li (:code "--repository, -r") ": search in the current git repository"))
 
-    (:p "The options are self-documented. Note that those options have no influence on the performance, they only help to narrow down the results you're getting. You can of course combine those with tags and count.")
+    (:p "Note that those options have no influence on the performance, they only help to narrow down the results you're getting. You can of course combine those with tags and count.")
 
     (:h3 :id "grep" "Grep")
 
@@ -93,18 +94,22 @@ indexed folders:
 
     (:p "After ballish is installed, you should be able to add this to your " (:code "init.el") " or equivalent:")
     (:pre "\(require 'ballish\)
-\(global-set-key (kbd \"C-c g\"\) 'ballish-grep-in-repository\)")
-    (:p "And you should be able to use " (:code "C-c g") " to start searching in the current git repository you're in.")
+\(global-set-key (kbd \"C-c j\"\) 'ballish-grep-in-repository\)
+\(global-set-key (kbd \"C-c k\"\) 'ballish-grep-everywhere\)")
+    (:p "And you should be able to use " (:code "C-c j") " to start searching in the current git repository you're in, or " (:code "C-c k") " to search everywhere.")
     (:blockquote :class "small" "Reminder: use \"+\" instead of spaces.")
-    (:p "The Emacs package provided by ballish provides 2 functions at the moment:")
+    (:p "The Emacs package provided by ballish provides 4 functions at the moment:")
     (:ul
      (:li (:code "ballish-grep-in-repository") ": grep in the current repository, uses grep-mode")
-     (:li (:code "ballish-ivy-grep-in-repository") ": same, with ivy integration. Can replace " (:code "counsel-git-grep") " with similar performance."))
+     (:li (:code "ballish-ivy-grep-in-repository") ": same, with ivy integration. Can replace " (:code "counsel-git-grep") " with similar performance.")
+     (:li (:code "ballish-grep-everywhere") ": grep everywhere, uses grep-mode")
+     (:li (:code "ballish-ivy-grep-everywhere") ": same, with ivy integration."))
 
     (:h4 :id "#vim" "Vim")
 
-    (:p "After ballish is installed, a Vim plugin is provided, and you can use this command inside Vim:")
-    (:pre ":BallishGrepInRepository <your search query>")
+    (:p "After ballish is installed, a Vim plugin is provided, and you can use these commands inside Vim:")
+    (:pre ":BallishGrepInRepository <your search query>
+:BallishGrepEverywhere <your search query>")
     (:blockquote :class "small" "Reminder: use \"+\" instead of spaces.")
     (:p "The Vim plugin opens the quickfix window by default, which you can disable by adding this to your " (:code ".vimrc") " or equivalent:")
     (:pre "let g:ballish_open_quickfix = 0")
@@ -127,4 +132,22 @@ indexed folders:
      (:li "SQLite is trying its best to optimize the database file, but sometimes needs a nudge. The " (:code "--optimize") " argument is doing that. It can potentially make the queries faster. Maybe throw that in a daily cron.")
      (:li "It is technically complex to remove indexed files once you decide to stop indexing a folder. Which is why the " (:code "--delete FOLDER") " option only stops watching for changes in the files, and does not clear anything in the index. To clear the database, you need to use " (:code "--purge") ". This means that re-indexing has to happen after that, a necessary evil."))
 
-    (:p "The SQLite database(s) live in the " (:code "$XDG_CACHE_HOME/ballish/") " folder, which is typically " (:code "~/.cache/ballish/") ".")))
+    (:p "The SQLite database(s) live in the " (:code "$XDG_CACHE_HOME/ballish/") " folder, which is typically " (:code "~/.cache/ballish/") ".")
+
+    (:h3 :id "exit" "Exit codes")
+
+    (:p "The " (:code "bl") " client will exit with a set of known exit codes when a given set of operations occur.")
+
+    (:ol
+     :start "0"
+     (:li :value "0" "The search returned results without any errors.")
+     (:li :value "1" "An unqualified error occured.")
+     (:li :value "2" "The program was interrupted by the user.")
+     (:li :value "3" "The ballish daemon is not started.")
+     (:li :value "4" "The database is too busy, the user should try again later.")
+     (:li :value "5" "An unhandled sqlite error occured.")
+     (:li :value "6" "The --repository argument was provided outside of a Git repository.")
+     (:li :value "7" "The --repository or --location arguments were provided without a query.")
+     (:li :value "8" "The index was not found.")
+     (:li :value "9" "Too many results were found to be able to use --grep.")
+     (:li :value "-255" "An unhandled error occured."))))

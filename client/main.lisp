@@ -373,7 +373,10 @@
 				 (or (and (uiop:getenv "BL_MAX_GREP_RESULTS")
 					  (parse-integer (uiop:getenv "BL_MAX_GREP_RESULTS")))
 				     *default-max-grep-results*)))
-    (fatal "too many results to grep."))
+    (error 'fatal-error
+	   :message "too many results to grep."
+	   :code 9
+	   :condition c))
   (let ((search (sanitize-for-grep query)))
     (handler-case
         (uiop:run-program
