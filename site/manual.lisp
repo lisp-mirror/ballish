@@ -96,6 +96,10 @@ indexed folders:
 \(global-set-key (kbd \"C-c g\"\) 'ballish-grep-in-repository\)")
     (:p "And you should be able to use " (:code "C-c g") " to start searching in the current git repository you're in.")
     (:blockquote :class "small" "Reminder: use \"+\" instead of spaces.")
+    (:p "The Emacs package provided by ballish provides 2 functions at the moment:")
+    (:ul
+     (:li (:code "ballish-grep-in-repository") ": grep in the current repository, uses grep-mode")
+     (:li (:code "ballish-ivy-grep-in-repository") ": same, with ivy integration. Can replace " (:code "counsel-git-grep") " with similar performance."))
 
     (:h4 :id "#vim" "Vim")
 
