@@ -141,7 +141,7 @@ indexed folders:
     (:ol
      :start "0"
      (:li :value "0" "The search returned results without any errors.")
-     (:li :value "1" "An unqualified error occured.")
+     (:li :value "1" "An unqualified error occured. Unqualified means it was handled, but not important enough to have its own exit code. This is typically used for bad arguments or sloppy coding.")
      (:li :value "2" "The program was interrupted by the user.")
      (:li :value "3" "The ballish daemon is not started.")
      (:li :value "4" "The database is too busy, the user should try again later.")
