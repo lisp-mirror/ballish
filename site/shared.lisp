@@ -111,7 +111,7 @@
 			 ("/download.html" "Download")
 			 ("/manual.html" "Manual")
 			 ("/contribute.html" "Contribute")
-			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))
+			 ("/contact.html" "Contact")))
 	   (if (string= ,title (second item))
 	       (:span :class "selected item" (second item))
 	       (:a :class "item" :href (first item) (second item))))))
