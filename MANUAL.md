@@ -128,6 +128,32 @@ $ bl -q glob64_t -g
 $
 ```
 
+# EXIT CODES
+
+The `bl` client will exit with defined exit codes.
+
+0 - The search returned results without any errors.
+
+1 - An unqualified error occured. Unqualified means it was handled, but not important enough to have its own exit code. This is typically used for bad arguments or sloppy coding.
+
+2 - The program was interrupted by the user.
+
+3 - The ballish daemon is not started.
+
+4 - The database is too busy, the user should try again later.
+
+5 - An unhandled sqlite error occured.
+
+6 - The --repository argument was provided outside of a Git repository.
+
+7 - The --repository or --location arguments were provided without a query.
+
+8 - The index was not found.
+
+9 - Too many results were found to be able to use --grep.
+
+-255 - An unhandled error occured.
+
 # LICENSE
 
 GPLv2
