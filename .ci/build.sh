@@ -24,10 +24,8 @@ git clone https://github.com/sbcl/sbcl.git ~/sbcl &> /dev/null
 curl -O https://beta.quicklisp.org/quicklisp.lisp && sbcl --load quicklisp.lisp --eval '(quicklisp-quickstart:install)' --eval '(ql:add-to-init-file)' --quit &> /dev/null
 git clone --depth=1 https://github.com/privet-kitty/wild-package-inferred-system.git ~/quicklisp/local-projects/wild-package-inferred-system/ &> /dev/null
 
-# We need a branch or cflags for c-file are ignored
-git clone --depth=1 --branch pr/fix-cflags https://github.com/ralt/cffi.git ~/quicklisp/local-projects/cffi/ &> /dev/null
-# TODO: go back to upstream as soon as it's merged
-#git clone --depth=1 https://github.com/cffi/cffi.git ~/quicklisp/local-projects/cffi/
+# Unreleased fixes upstream
+git clone --depth=1 https://github.com/cffi/cffi.git ~/quicklisp/local-projects/cffi/
 
 # upstream cl-inotify weakly depends on iolib, which is a PITA to bundle
 git clone --depth=1 https://github.com/ralt/cl-inotify.git ~/quicklisp/local-projects/cl-inotify/ &> /dev/null

@@ -110,7 +110,7 @@
 	 (dolist (item '(("/" "About")
 			 ("/download.html" "Download")
 			 ("/manual.html" "Manual")
-			 ("https://gitlab.com/ralt/ballish/" "Contribute")
+			 ("/contribute.html" "Contribute")
 			 ("https://gitlab.com/ralt/ballish/-/issues/" "Contact")))
 	   (if (string= ,title (second item))
 	       (:span :class "selected item" (second item))
