@@ -10,7 +10,7 @@
 
     (:h2 "Let's get started!")
 
-    (:p "Assuming you got this to page from the " (:a :href "/download.html" "download page") ", you should have done the first step: installing the ballish daemon. It will do the magic for the search to work. Let's have a quick reminder in case you haven't done it:")
+    (:p "Assuming you got to this page from the " (:a :href "/download.html" "download page") ", you should have done the first step: installing the ballish daemon. It will do the magic for the search to work. Let's have a quick reminder in case you haven't done it:")
     (:pre "$ sudo systemctl enable --now ballish-daemon@\"$USER\"")
     (:p "That should be it. Let's verify it works:")
     (:pre "$ bl --status
