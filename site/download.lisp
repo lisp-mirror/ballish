@@ -13,7 +13,7 @@
 
      (:p (format
 	  nil
-	  "The packages for latest ballish release can be downloaded on Gitlab.com: "
+	  "The packages for the latest ballish release can be downloaded on Gitlab.com: "
 	  *version*)
 	 (:a :href (format
 		    nil
