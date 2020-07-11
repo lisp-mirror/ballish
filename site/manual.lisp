@@ -150,4 +150,4 @@ indexed folders:
      (:li :value "7" "The --repository or --location arguments were provided without a query.")
      (:li :value "8" "The index was not found.")
      (:li :value "9" "Too many results were found to be able to use --grep.")
-     (:li :value "-255" "An unhandled error occured."))))
+     (:li :value "255" "An unhandled error occured."))))

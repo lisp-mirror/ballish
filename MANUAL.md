@@ -152,7 +152,7 @@ The `bl` client will exit with defined exit codes.
 
 9 - Too many results were found to be able to use --grep.
 
--255 - An unhandled error occured.
+255 - An unhandled error occured.
 
 # LICENSE
 
