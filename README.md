@@ -22,4 +22,7 @@ See the [contribute page](https://ballish.margaine.com/contribute.html).
 
 ## Roadmap
 
+- Support deletions properly.
+- Add an argument to merge custom yaml file to extend supported
+  extensions.
 - Potentially add search on Git commits.
