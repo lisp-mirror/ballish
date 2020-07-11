@@ -1,4 +1,13 @@
-# Make sure alphabetical sorting is respected.
+# The format is:
+#
+# <file extension>: [tag1, tag2]
+#
+# If you need to add support for multiple file extensions, use
+# multiple lines.
+#
+# Make sure alphabetical sorting is respected, or we can potentially
+# end up with duplicates. And YAML isn't going to warn you about
+# those.
 
 adb: [ada]
 ads: [ada]
